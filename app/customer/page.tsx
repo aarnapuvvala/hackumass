@@ -29,12 +29,6 @@ export default function CustomerPage() {
           Continue as guest
         </Button>
       </form>
-      <Link
-        href="/stores"
-        className={cn(buttonVariants({ size: "lg" }), "h-10 w-full")}
-      >
-        View stores
-      </Link>
     </main>
   )
 }
