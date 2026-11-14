@@ -1,0 +1,16 @@
+import { login } from "@/app/actions"
+import { LoginForm } from "@/components/login-form"
+
+export default function DriverPage() {
+  return (
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-6 py-12">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight">Driver</h1>
+        <p className="text-muted-foreground">
+          Log in with a username and password.
+        </p>
+      </div>
+      <LoginForm action={login} submitLabel="Log in" />
+    </main>
+  )
+}
