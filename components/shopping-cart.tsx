@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react"
 import { ShoppingCart } from "lucide-react"
-import { useCart } from "@/components/cart-provider"
+import { formatMoney, useCart } from "@/components/cart-provider"
 import { Button } from "@/components/ui/button"
 
 export function ShoppingCartButton() {
@@ -11,6 +11,7 @@ export function ShoppingCartButton() {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const count = items.reduce((total, item) => total + item.quantity, 0)
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -73,8 +74,16 @@ export function ShoppingCartButton() {
                     <div>
                       <p className="font-medium">{item.name}</p>
                       <p className="text-sm text-muted-foreground">{item.detail}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatMoney(item.price)} each
+                      </p>
                     </div>
-                    <p className="text-sm font-medium">Qty {item.quantity}</p>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">Qty {item.quantity}</p>
+                      <p className="text-sm font-medium">
+                        {formatMoney(item.price * item.quantity)}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -106,6 +115,10 @@ export function ShoppingCartButton() {
               ))}
             </ul>
           )}
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+            <p className="font-medium">Total</p>
+            <p className="text-lg font-semibold">{formatMoney(total)}</p>
+          </div>
         </div>
       </dialog>
     </>

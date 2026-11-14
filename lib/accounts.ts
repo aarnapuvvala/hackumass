@@ -46,6 +46,17 @@ export async function listStoreAccounts() {
   return accounts.filter((account): account is StoreAccount => account.role === "store")
 }
 
+export async function findStoreAccount(name: string) {
+  const accounts = await readAccounts()
+  const storeName = name.trim()
+  return (
+    accounts.find(
+      (account): account is StoreAccount =>
+        account.role === "store" && account.name.trim() === storeName
+    ) ?? null
+  )
+}
+
 export async function findCustomerAccount(username: string) {
   const accounts = await readAccounts()
   return (
