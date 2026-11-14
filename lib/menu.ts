@@ -1,7 +1,6 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
+import { readStoredJson, writeStoredJson } from "@/lib/json-store"
 
-const menuPath = path.join(process.cwd(), "data", "menu.json")
+const menuFile = "menu.json"
 
 export const snapStatuses = ["eligible", "not-eligible", "unsure"] as const
 
@@ -30,7 +29,10 @@ const emptyMenu: MenuData = { photoUrl: "", sections: [] }
 
 export async function loadMenu(): Promise<MenuData> {
   try {
-    const raw = await readFile(menuPath, "utf8")
+    const raw = await readStoredJson(menuFile)
+    if (!raw) {
+      return emptyMenu
+    }
     const parsed: unknown = JSON.parse(raw)
     if (!parsed || typeof parsed !== "object") {
       return emptyMenu
@@ -123,8 +125,7 @@ export function readSections(value: unknown) {
 }
 
 async function writeMenu(menu: MenuData) {
-  await mkdir(path.dirname(menuPath), { recursive: true })
-  await writeFile(menuPath, `${JSON.stringify(menu, null, 2)}\n`)
+  await writeStoredJson(menuFile, `${JSON.stringify(menu, null, 2)}\n`)
 }
 
 function readSection(value: unknown): MenuSection | null {

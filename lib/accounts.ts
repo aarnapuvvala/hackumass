@@ -1,7 +1,6 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
+import { readStoredJson, writeStoredJson } from "@/lib/json-store"
 
-const accountsPath = path.join(process.cwd(), "data", "accounts.json")
+const accountsFile = "accounts.json"
 
 export type CustomerAccount = {
   role: "customer"
@@ -32,8 +31,11 @@ export type StoreAccount = {
 export type Account = CustomerAccount | DriverAccount | StoreAccount
 
 async function readAccounts() {
+  const raw = await readStoredJson(accountsFile)
+  if (!raw) {
+    return []
+  }
   try {
-    const raw = await readFile(accountsPath, "utf8")
     const parsed = JSON.parse(raw) as { accounts?: Account[] }
     return Array.isArray(parsed.accounts) ? parsed.accounts : []
   } catch {
@@ -68,8 +70,7 @@ export async function findCustomerAccount(username: string) {
 }
 
 export async function addAccount(account: Account) {
-  await mkdir(path.dirname(accountsPath), { recursive: true })
   const accounts = await readAccounts()
   accounts.push(account)
-  await writeFile(accountsPath, `${JSON.stringify({ accounts }, null, 2)}\n`)
+  await writeStoredJson(accountsFile, `${JSON.stringify({ accounts }, null, 2)}\n`)
 }

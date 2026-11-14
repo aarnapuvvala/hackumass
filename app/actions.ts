@@ -99,12 +99,6 @@ export async function createAccount(
       return { ok: false, error: "Username and password are required." }
     }
     account = { role, username, password, createdAt }
-    await addAccount(account)
-    cookieStore.set("role", "customer", cookieOptions)
-    cookieStore.set("username", username, cookieOptions)
-    cookieStore.set("password", password, cookieOptions)
-    cookieStore.set("auth", "login", cookieOptions)
-    redirect("/customer_account")
   } else if (role === "driver") {
     const username = text(formData, "username")
     const password = String(formData.get("password") ?? "")
@@ -145,8 +139,21 @@ export async function createAccount(
     return { ok: false, error: "Choose a role before creating an account." }
   }
 
-  await addAccount(account)
-  if (role === "store") {
+  try {
+    await addAccount(account)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not save the account."
+    return { ok: false, error: message }
+  }
+  if (account.role === "customer") {
+    cookieStore.set("role", "customer", cookieOptions)
+    cookieStore.set("username", account.username, cookieOptions)
+    cookieStore.set("password", account.password, cookieOptions)
+    cookieStore.set("auth", "login", cookieOptions)
+    redirect("/customer_account")
+  }
+  if (account.role === "store") {
+    cookieStore.set("username", account.name, cookieOptions)
     cookieStore.set("auth", "login", cookieOptions)
     redirect("/account-store")
   }
