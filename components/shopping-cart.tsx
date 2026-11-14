@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useId, useRef, useState } from "react"
+import Link from "next/link"
 import { ShoppingCart } from "lucide-react"
 import { formatMoney, useCart } from "@/components/cart-provider"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function ShoppingCartButton() {
   const { items, removeItem, setQuantity } = useCart()
@@ -119,6 +121,18 @@ export function ShoppingCartButton() {
             <p className="font-medium">Total</p>
             <p className="text-lg font-semibold">{formatMoney(total)}</p>
           </div>
+          {items.length === 0 ? (
+            <Button type="button" size="lg" className="h-10 w-full" disabled>
+              Create order
+            </Button>
+          ) : (
+            <Link
+              href="/orders"
+              className={cn(buttonVariants({ size: "lg" }), "h-10 w-full")}
+            >
+              Create order
+            </Link>
+          )}
         </div>
       </dialog>
     </>

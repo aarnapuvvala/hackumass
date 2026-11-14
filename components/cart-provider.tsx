@@ -1,6 +1,8 @@
 "use client"
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { pickupAddress } from "@/lib/pickup"
+import { formatMoney } from "@/lib/utils"
 
 export type CartItem = {
   id: string
@@ -8,13 +10,16 @@ export type CartItem = {
   detail: string
   price: number
   quantity: number
+  pickup: string
 }
 
 type CartContextValue = {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, "quantity">) => void
+  ready: boolean
+  addItem: (item: Omit<CartItem, "quantity" | "pickup"> & { pickup?: string }) => void
   removeItem: (id: string) => void
   setQuantity: (id: string, quantity: number) => void
+  clear: () => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -52,14 +57,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartContextValue>(
     () => ({
       items,
+      ready,
       addItem(item) {
         setItems((current) => {
-          const existing = current.find((entry) => entry.id === item.id)
+          const next = { ...item, pickup: pickupAddress(item) }
+          const existing = current.find((entry) => entry.id === next.id)
           if (!existing) {
-            return [...current, { ...item, quantity: 1 }]
+            return [...current, { ...next, quantity: 1 }]
           }
           return current.map((entry) =>
-            entry.id === item.id ? { ...entry, quantity: entry.quantity + 1 } : entry
+            entry.id === next.id ? { ...entry, quantity: entry.quantity + 1 } : entry
           )
         })
       },
@@ -73,8 +80,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             : current.map((entry) => (entry.id === id ? { ...entry, quantity } : entry))
         )
       },
+      clear() {
+        setItems((current) => (current.length === 0 ? current : []))
+      },
     }),
-    [items]
+    [items, ready]
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
@@ -107,18 +117,15 @@ function readStoredItem(value: unknown): CartItem | null {
     return null
   }
   const price = typeof item.price === "number" && Number.isFinite(item.price) ? item.price : 0
+  const pickup = typeof item.pickup === "string" ? item.pickup : ""
   return {
     id: item.id,
     name: item.name,
     detail: item.detail,
     price,
     quantity: item.quantity,
+    pickup: pickupAddress({ id: item.id, pickup }),
   }
 }
 
-export function formatMoney(amount: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount)
-}
+export { formatMoney }
