@@ -13,7 +13,7 @@ export default function StorePage() {
           Log in with a username and password.
         </p>
       </div>
-      <LoginForm action={login} submitLabel="Log in" />
+      <LoginForm action={login} submitLabel="Log in" redirectTo="/account-store" />
       <Link
         href="/account"
         className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 w-full")}

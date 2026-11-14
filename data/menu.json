@@ -1,0 +1,29 @@
+{
+  "photoUrl": "",
+  "sections": [
+    {
+      "id": "652ff476-17b6-414c-ba61-16907d275e2e",
+      "name": "Water",
+      "items": [
+        {
+          "id": "410cbd28-60c9-4d68-848f-a59e86745ae1",
+          "name": "Drinks",
+          "price": "4.99",
+          "snap": "eligible"
+        }
+      ]
+    },
+    {
+      "id": "1a896b52-3656-49cc-904d-0e82f8463a44",
+      "name": "Chi[s",
+      "items": [
+        {
+          "id": "b2296761-9db5-4677-93e0-e83dd8440e23",
+          "name": "Doritos",
+          "price": "5.99",
+          "snap": "not-eligible"
+        }
+      ]
+    }
+  ]
+}
