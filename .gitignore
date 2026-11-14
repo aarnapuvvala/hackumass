@@ -43,4 +43,3 @@ next-env.d.ts
 # account records
 /data/accounts.json
 /data/stores.json
-/data/licenses
