@@ -1,6 +1,8 @@
+import Link from "next/link"
 import { continueAsGuest, login } from "@/app/actions"
 import { LoginForm } from "@/components/login-form"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function CustomerPage() {
   return (
@@ -16,11 +18,23 @@ export default function CustomerPage() {
         <h2 className="text-sm font-medium">Log in</h2>
         <LoginForm action={login} submitLabel="Log in" />
       </div>
+      <Link
+        href="/account"
+        className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 w-full")}
+      >
+        Create an account
+      </Link>
       <form action={continueAsGuest}>
         <Button type="submit" variant="outline" size="lg" className="h-10 w-full">
           Continue as guest
         </Button>
       </form>
+      <Link
+        href="/stores"
+        className={cn(buttonVariants({ size: "lg" }), "h-10 w-full")}
+      >
+        View stores
+      </Link>
     </main>
   )
 }
