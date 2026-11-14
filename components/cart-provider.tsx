@@ -81,6 +81,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         )
       },
       clear() {
+        window.localStorage.setItem(storageKey, "[]")
         setItems((current) => (current.length === 0 ? current : []))
       },
     }),

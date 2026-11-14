@@ -1,16 +1,16 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { createOrder, type CreateOrderState } from "@/app/actions"
 import { formatMoney, useCart } from "@/components/cart-provider"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 const fieldClassName =
   "h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 export function CreateOrderForm() {
+  const router = useRouter()
   const { items, clear, ready } = useCart()
   const [address, setAddress] = useState("")
   const [state, formAction, pending] = useActionState<CreateOrderState, FormData>(
@@ -23,26 +23,12 @@ export function CreateOrderForm() {
   useEffect(() => {
     if (state?.ok) {
       clear()
+      router.push("/customer_account")
     }
-  }, [state, clear])
+  }, [state, clear, router])
 
   if (state?.ok) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Order created</h1>
-          <p className="text-muted-foreground">
-            Your order will be delivered to {state.address}.
-          </p>
-        </div>
-        <Link
-          href="/customer_account"
-          className={cn(buttonVariants({ size: "lg" }), "h-10 w-full")}
-        >
-          Back to stores
-        </Link>
-      </div>
-    )
+    return <p className="text-sm text-muted-foreground">Order created. Returning to your account…</p>
   }
 
   return (
