@@ -2,28 +2,125 @@
   "photoUrl": "",
   "sections": [
     {
-      "id": "652ff476-17b6-414c-ba61-16907d275e2e",
-      "name": "Water",
+      "id": "produce",
+      "name": "Produce",
       "items": [
         {
-          "id": "410cbd28-60c9-4d68-848f-a59e86745ae1",
-          "name": "Drinks",
-          "price": "4.99",
+          "id": "bigy-bananas",
+          "name": "Bananas",
+          "price": "0.69",
           "snap": "eligible",
           "store": "Big Y Supermarkets"
+        },
+        {
+          "id": "bigy-gala-apples",
+          "name": "Gala Apples",
+          "price": "1.79",
+          "snap": "eligible",
+          "store": "Big Y Supermarkets"
+        },
+        {
+          "id": "atkins-local-apples",
+          "name": "Local Apples",
+          "price": "2.49",
+          "snap": "eligible",
+          "store": "Atkins Farms Country Market"
+        },
+        {
+          "id": "atkins-butternut-squash",
+          "name": "Butternut Squash",
+          "price": "1.99",
+          "snap": "eligible",
+          "store": "Atkins Farms Country Market"
+        },
+        {
+          "id": "amherst-yellow-onions",
+          "name": "Yellow Onions",
+          "price": "1.29",
+          "snap": "eligible",
+          "store": "Amherst Market"
+        },
+        {
+          "id": "amherst-roma-tomatoes",
+          "name": "Roma Tomatoes",
+          "price": "2.79",
+          "snap": "eligible",
+          "store": "Amherst Market"
         }
       ]
     },
     {
-      "id": "1a896b52-3656-49cc-904d-0e82f8463a44",
-      "name": "Chi[s",
+      "id": "dairy",
+      "name": "Dairy",
       "items": [
         {
-          "id": "b2296761-9db5-4677-93e0-e83dd8440e23",
-          "name": "Doritos",
-          "price": "5.99",
+          "id": "bigy-whole-milk",
+          "name": "Whole Milk",
+          "price": "3.89",
+          "snap": "eligible",
+          "store": "Big Y Supermarkets"
+        },
+        {
+          "id": "bigy-sharp-cheddar",
+          "name": "Sharp Cheddar",
+          "price": "5.49",
+          "snap": "eligible",
+          "store": "Big Y Supermarkets"
+        },
+        {
+          "id": "atkins-farm-eggs",
+          "name": "Farm Eggs",
+          "price": "6.50",
+          "snap": "eligible",
+          "store": "Atkins Farms Country Market"
+        },
+        {
+          "id": "atkins-cheddar-curds",
+          "name": "Cheddar Curds",
+          "price": "7.99",
+          "snap": "eligible",
+          "store": "Atkins Farms Country Market"
+        },
+        {
+          "id": "amherst-2-percent-milk",
+          "name": "2% Milk",
+          "price": "3.69",
+          "snap": "eligible",
+          "store": "Amherst Market"
+        },
+        {
+          "id": "amherst-american-cheese",
+          "name": "American Cheese",
+          "price": "4.29",
+          "snap": "eligible",
+          "store": "Amherst Market"
+        }
+      ]
+    },
+    {
+      "id": "deli",
+      "name": "Deli",
+      "items": [
+        {
+          "id": "bigy-rotisserie-chicken",
+          "name": "Rotisserie Chicken",
+          "price": "8.99",
           "snap": "not-eligible",
           "store": "Big Y Supermarkets"
+        },
+        {
+          "id": "atkins-hot-apple-cider",
+          "name": "Hot Apple Cider",
+          "price": "3.50",
+          "snap": "not-eligible",
+          "store": "Atkins Farms Country Market"
+        },
+        {
+          "id": "amherst-hot-breakfast-sandwich",
+          "name": "Hot Breakfast Sandwich",
+          "price": "5.99",
+          "snap": "not-eligible",
+          "store": "Amherst Market"
         }
       ]
     }
