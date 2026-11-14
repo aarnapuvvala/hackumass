@@ -4,12 +4,10 @@ export function LoginForm({
   action,
   submitLabel,
   redirectTo,
-  usernameLabel = "Username",
 }: {
   action: (formData: FormData) => void | Promise<void>
   submitLabel: string
   redirectTo?: "/account-store" | "/customer_account"
-  usernameLabel?: string
 }) {
   return (
     <form action={action} className="flex flex-col gap-4">

@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { addAccount, findCustomerAccount, findStoreAccount, type Account } from "@/lib/accounts"
+import { addAccount, findCustomerAccount, type Account } from "@/lib/accounts"
 import { geocodeAddress, milesBetween } from "@/lib/geo"
 
 const ROLES = ["customer", "driver", "store"] as const
@@ -55,25 +55,22 @@ export async function login(formData: FormData) {
   }
 
   const cookieStore = await cookies()
-  const redirectTo = String(formData.get("redirectTo") ?? "")
-  if (redirectTo === "/account-store" || cookieStore.get("role")?.value === "store") {
-    const store = await findStoreAccount(username)
-    cookieStore.set("role", "store", cookieOptions)
-    cookieStore.set("username", store?.name ?? username, cookieOptions)
-    cookieStore.set("password", password, cookieOptions)
-    cookieStore.set("auth", "login", cookieOptions)
-    redirect("/account-store")
-  }
-
   const account = await findCustomerAccount(username)
   const signedInName =
     account && account.password === password ? account.username : username
   cookieStore.set("username", signedInName, cookieOptions)
   cookieStore.set("password", password, cookieOptions)
   cookieStore.set("auth", "login", cookieOptions)
+  const redirectTo = String(formData.get("redirectTo") ?? "")
   if (redirectTo === "/customer_account") {
     cookieStore.set("role", "customer", cookieOptions)
     redirect("/customer_account")
+  }
+  if (redirectTo === "/account-store" || cookieStore.get("role")?.value === "store") {
+    if (redirectTo === "/account-store") {
+      cookieStore.set("role", "store", cookieOptions)
+    }
+    redirect("/account-store")
   }
   if (cookieStore.get("role")?.value === "customer") {
     redirect("/customer_account")
@@ -149,9 +146,7 @@ export async function createAccount(
   }
 
   await addAccount(account)
-  if (account.role === "store") {
-    cookieStore.set("role", "store", cookieOptions)
-    cookieStore.set("username", account.name, cookieOptions)
+  if (role === "store") {
     cookieStore.set("auth", "login", cookieOptions)
     redirect("/account-store")
   }
