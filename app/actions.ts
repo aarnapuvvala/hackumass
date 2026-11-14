@@ -94,7 +94,7 @@ export async function findNearbyPlaces(
 
   const delta = 0.03
   const viewbox = `${lon - delta},${lat + delta},${lon + delta},${lat - delta}`
-  const searches = [
+  const searches: Record<string, string>[] = [
     { amenity: "restaurant" },
     { amenity: "cafe" },
     { amenity: "fast_food" },
