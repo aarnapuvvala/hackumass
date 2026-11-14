@@ -1,7 +1,9 @@
 import { Suspense } from "react"
+import { cookies } from "next/headers"
 import { connection } from "next/server"
 import { CreateMenu } from "@/components/create-menu"
-import { loadMenu } from "@/lib/menu"
+import { findStoreAccount } from "@/lib/accounts"
+import { loadMenu, menuForStore } from "@/lib/menu"
 
 export default function AccountStorePage() {
   return (
@@ -21,6 +23,22 @@ export default function AccountStorePage() {
 
 async function StoreMenu() {
   await connection()
+  const cookieStore = await cookies()
+  const username = cookieStore.get("username")?.value?.trim() ?? ""
+  const store = username ? await findStoreAccount(username) : null
   const menu = await loadMenu()
-  return <CreateMenu initialPhotoUrl={menu.photoUrl} initialSections={menu.sections} />
+  if (!store) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Log in with your store name to edit this menu.
+      </p>
+    )
+  }
+  return (
+    <CreateMenu
+      storeName={store.name}
+      initialPhotoUrl={menu.photoUrl}
+      initialSections={menuForStore(menu.sections, store.name, { includeUnassigned: true })}
+    />
+  )
 }

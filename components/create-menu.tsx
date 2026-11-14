@@ -22,9 +22,11 @@ const snapLabels: Record<SnapStatus, string> = {
 }
 
 export function CreateMenu({
+  storeName,
   initialPhotoUrl,
   initialSections,
 }: {
+  storeName: string
   initialPhotoUrl: string
   initialSections: MenuSection[]
 }) {
@@ -318,7 +320,13 @@ export function CreateMenu({
                       updateSection(section.id, {
                         items: [
                           ...section.items,
-                          { id: crypto.randomUUID(), name: "", price: "", snap: "unsure" },
+                          {
+                            id: crypto.randomUUID(),
+                            name: "",
+                            price: "",
+                            snap: "unsure",
+                            store: storeName,
+                          },
                         ],
                       })
                     }

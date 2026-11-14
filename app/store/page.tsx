@@ -10,10 +10,15 @@ export default function StorePage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Store</h1>
         <p className="text-muted-foreground">
-          Log in with a username and password.
+          Log in with your store name and a password.
         </p>
       </div>
-      <LoginForm action={login} submitLabel="Log in" redirectTo="/account-store" />
+      <LoginForm
+        action={login}
+        submitLabel="Log in"
+        redirectTo="/account-store"
+        usernameLabel="Store name"
+      />
       <Link
         href="/account"
         className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 w-full")}

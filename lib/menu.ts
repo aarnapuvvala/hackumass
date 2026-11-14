@@ -12,6 +12,7 @@ export type MenuManualItem = {
   name: string
   price: string
   snap: SnapStatus
+  store: string
 }
 
 export type MenuSection = {
@@ -56,11 +57,51 @@ export async function saveMenuPhoto(photoUrl: string) {
   return menu.photoUrl
 }
 
-export async function saveMenuSections(sections: MenuSection[]) {
+export function menuForStore(
+  sections: MenuSection[],
+  storeName: string,
+  options?: { includeUnassigned?: boolean }
+) {
+  const name = storeName.trim()
+  if (!name) {
+    return []
+  }
+  return sections.flatMap((section) => {
+    const items = section.items.filter(
+      (item) => item.store === name || (options?.includeUnassigned && item.store === "")
+    )
+    return items.length > 0 ? [{ ...section, items }] : []
+  })
+}
+
+export async function saveMenuSections(sections: MenuSection[], storeName: string) {
+  const name = storeName.trim()
+  const stamped = sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({ ...item, store: name })),
+  }))
   const menu = await loadMenu()
-  menu.sections = sections
+  const savedIds = new Set(stamped.flatMap((section) => section.items.map((item) => item.id)))
+  const kept = menu.sections.flatMap((section) => {
+    const items = section.items.filter(
+      (item) => item.store !== name && !savedIds.has(item.id)
+    )
+    return items.length > 0 ? [{ ...section, items }] : []
+  })
+
+  for (const section of stamped) {
+    const existing = kept.find((entry) => entry.id === section.id)
+    if (existing) {
+      existing.name = section.name
+      existing.items.push(...section.items)
+    } else if (section.items.length > 0 || section.name) {
+      kept.push(section)
+    }
+  }
+
+  menu.sections = kept
   await writeMenu(menu)
-  return menu.sections
+  return stamped
 }
 
 export function readSections(value: unknown) {
@@ -114,7 +155,13 @@ function readManualItem(value: unknown): MenuManualItem | null {
   if (!value || typeof value !== "object") {
     return null
   }
-  const item = value as { id?: unknown; name?: unknown; price?: unknown; snap?: unknown }
+  const item = value as {
+    id?: unknown
+    name?: unknown
+    price?: unknown
+    snap?: unknown
+    store?: unknown
+  }
   const name = typeof item.name === "string" ? item.name.trim() : ""
   if (!name || !isSnapStatus(item.snap)) {
     return null
@@ -124,6 +171,7 @@ function readManualItem(value: unknown): MenuManualItem | null {
     name,
     price: priceText(item.price),
     snap: item.snap,
+    store: typeof item.store === "string" ? item.store.trim() : "",
   }
 }
 

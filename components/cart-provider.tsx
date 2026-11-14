@@ -6,6 +6,7 @@ export type CartItem = {
   id: string
   name: string
   detail: string
+  price: number
   quantity: number
 }
 
@@ -29,7 +30,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const parsed: unknown = JSON.parse(raw)
         if (Array.isArray(parsed)) {
-          setItems(parsed.filter(isCartItem))
+          setItems(parsed.flatMap((entry) => {
+            const item = readStoredItem(entry)
+            return item ? [item] : []
+          }))
         }
       }
     } catch {
@@ -88,15 +92,33 @@ export function useOptionalCart() {
   return useContext(CartContext)
 }
 
-function isCartItem(value: unknown): value is CartItem {
+function readStoredItem(value: unknown): CartItem | null {
   if (!value || typeof value !== "object") {
-    return false
+    return null
   }
   const item = value as Record<string, unknown>
-  return (
-    typeof item.id === "string" &&
-    typeof item.name === "string" &&
-    typeof item.detail === "string" &&
-    typeof item.quantity === "number"
-  )
+  if (
+    typeof item.id !== "string" ||
+    typeof item.name !== "string" ||
+    typeof item.detail !== "string" ||
+    typeof item.quantity !== "number" ||
+    !Number.isFinite(item.quantity)
+  ) {
+    return null
+  }
+  const price = typeof item.price === "number" && Number.isFinite(item.price) ? item.price : 0
+  return {
+    id: item.id,
+    name: item.name,
+    detail: item.detail,
+    price,
+    quantity: item.quantity,
+  }
+}
+
+export function formatMoney(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount)
 }

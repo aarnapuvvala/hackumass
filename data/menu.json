@@ -9,7 +9,8 @@
           "id": "410cbd28-60c9-4d68-848f-a59e86745ae1",
           "name": "Drinks",
           "price": "4.99",
-          "snap": "eligible"
+          "snap": "eligible",
+          "store": "Big Y Supermarkets"
         }
       ]
     },
@@ -21,7 +22,8 @@
           "id": "b2296761-9db5-4677-93e0-e83dd8440e23",
           "name": "Doritos",
           "price": "5.99",
-          "snap": "not-eligible"
+          "snap": "not-eligible",
+          "store": "Big Y Supermarkets"
         }
       ]
     }

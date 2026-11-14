@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { Circle } from "lucide-react"
 import { storeDistances } from "@/app/actions"
-import { useOptionalCart } from "@/components/cart-provider"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import type { StoreAccount } from "@/lib/accounts"
+import { cn } from "@/lib/utils"
 
 type LocationState =
   | { status: "pending" }
@@ -13,7 +14,6 @@ type LocationState =
   | { status: "denied" }
 
 export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
-  const cart = useOptionalCart()
   const [location, setLocation] = useState<LocationState>({ status: "pending" })
   const [distances, setDistances] = useState<Record<string, number | null> | null>(null)
 
@@ -107,23 +107,12 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
           </div>
           <p className="text-sm text-muted-foreground">{store.address}</p>
           <p className="text-sm">{distanceLabel(store.address, location, distances)}</p>
-          {cart ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2 w-fit"
-              onClick={() =>
-                cart.addItem({
-                  id: `${store.name}-${store.address}`,
-                  name: store.name,
-                  detail: store.address,
-                })
-              }
-            >
-              Add to cart
-            </Button>
-          ) : null}
+          <Link
+            href={`/menu?name=${encodeURIComponent(store.name)}&address=${encodeURIComponent(store.address)}`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-2 w-fit")}
+          >
+            View menu
+          </Link>
         </li>
       ))}
     </ul>
