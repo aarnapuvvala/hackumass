@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import { isSamePlace, snapStoresNear } from "@/lib/snap-stores"
 
 const ROLES = ["customer", "driver", "store"] as const
 
@@ -82,6 +83,7 @@ export type NearbyPlace = {
   kind: "restaurant" | "store"
   lat: number
   lon: number
+  snap: boolean
 }
 
 export async function findNearbyPlaces(
@@ -106,13 +108,57 @@ export async function findNearbyPlaces(
       searches.map((search) => searchPlaces(viewbox, search))
     )
     const seen = new Set<number>()
-    return batches.flat().filter((place) => {
+    const places = batches.flat().filter((place) => {
       if (seen.has(place.id)) {
         return false
       }
       seen.add(place.id)
       return true
     })
+    const snapStores = snapStoresNear(lat, lon)
+    const matched = new Set<number>()
+
+    for (const place of places) {
+      if (place.kind !== "store") {
+        continue
+      }
+      const match = snapStores.findIndex(
+        (store, index) =>
+          !matched.has(index) && isSamePlace(place.lat, place.lon, store.lat, store.lon)
+      )
+      if (match >= 0) {
+        place.snap = true
+        matched.add(match)
+      }
+    }
+
+    snapStores.forEach((store, index) => {
+      if (matched.has(index)) {
+        return
+      }
+      places.push({
+        id: 1_000_000_000 + index,
+        name: store.name,
+        kind: "store",
+        lat: store.lat,
+        lon: store.lon,
+        snap: true,
+      })
+    })
+
+    const cookieStore = await cookies()
+    const saved = snapStores.map((store) => ({
+      name: store.name,
+      lat: store.lat,
+      lon: store.lon,
+    }))
+    let value = JSON.stringify(saved)
+    if (value.length > 3800) {
+      value = JSON.stringify(saved.slice(0, 40).map((store) => store.name))
+    }
+    cookieStore.set("SNAPstore", value, cookieOptions)
+
+    return places
   } catch {
     return []
   }
@@ -120,7 +166,7 @@ export async function findNearbyPlaces(
 
 async function searchPlaces(
   viewbox: string,
-  search: Record<string, string>
+  search: { amenity?: string; q?: string }
 ): Promise<NearbyPlace[]> {
   const url = new URL("https://nominatim.openstreetmap.org/search")
   url.searchParams.set("format", "jsonv2")
@@ -128,7 +174,9 @@ async function searchPlaces(
   url.searchParams.set("viewbox", viewbox)
   url.searchParams.set("bounded", "1")
   for (const [key, value] of Object.entries(search)) {
-    url.searchParams.set(key, value)
+    if (value) {
+      url.searchParams.set(key, value)
+    }
   }
 
   const response = await fetch(url, {
@@ -163,6 +211,7 @@ async function searchPlaces(
         kind: isStore ? ("store" as const) : ("restaurant" as const),
         lat: placeLat,
         lon: placeLon,
+        snap: false,
       },
     ]
   })

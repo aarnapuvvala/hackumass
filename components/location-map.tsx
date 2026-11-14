@@ -67,15 +67,16 @@ export function LocationMap() {
       }
 
       nearby.forEach((place) => {
+        const color = place.snap ? "#eab308" : place.kind === "store" ? "#2563eb" : "#b45309"
         leaflet
           .circleMarker([place.lat, place.lon], {
-            radius: 7,
-            color: place.kind === "store" ? "#2563eb" : "#b45309",
-            fillColor: place.kind === "store" ? "#2563eb" : "#b45309",
+            radius: place.snap ? 8 : 7,
+            color,
+            fillColor: color,
             fillOpacity: 0.9,
           })
           .addTo(map)
-          .bindPopup(`${place.name} (${place.kind})`)
+          .bindPopup(place.snap ? `${place.name} (SNAP store)` : `${place.name} (${place.kind})`)
       })
 
       if (nearby.length > 0) {
@@ -126,6 +127,11 @@ export function LocationMap() {
             >
               <span className="font-medium">{place.name}</span>
               <span className="text-muted-foreground"> · {place.kind}</span>
+              {place.snap ? (
+                <span className="ml-2 rounded-full bg-yellow-300 px-2 py-0.5 text-xs font-medium text-yellow-950">
+                  SNAP
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>
