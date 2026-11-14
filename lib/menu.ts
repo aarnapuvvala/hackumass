@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import { loadCatalogStores } from "@/lib/catalog"
 
 const menuPath = path.join(process.cwd(), "data", "menu.json")
 
@@ -26,27 +27,14 @@ export type MenuData = {
   sections: MenuSection[]
 }
 
-const emptyMenu: MenuData = { photoUrl: "", sections: [] }
-
 export async function loadMenu(): Promise<MenuData> {
-  try {
-    const raw = await readFile(menuPath, "utf8")
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object") {
-      return emptyMenu
-    }
-    const record = parsed as { photoUrl?: unknown; sections?: unknown }
-    return {
-      photoUrl: httpsUrl(record.photoUrl),
-      sections: Array.isArray(record.sections)
-        ? record.sections.flatMap((entry) => {
-            const section = readSection(entry)
-            return section ? [section] : []
-          })
-        : [],
-    }
-  } catch {
-    return emptyMenu
+  const saved = await readSavedMenu()
+  if (saved?.source === "saved") {
+    return { photoUrl: saved.photoUrl, sections: saved.sections }
+  }
+  return {
+    photoUrl: saved?.photoUrl ?? "",
+    sections: await catalogSections(),
   }
 }
 
@@ -122,9 +110,65 @@ export function readSections(value: unknown) {
   return { sections } as const
 }
 
+async function catalogSections(): Promise<MenuSection[]> {
+  const stores = await loadCatalogStores()
+  const sections = new Map<string, MenuSection>()
+  for (const store of stores) {
+    for (const category of store.categories) {
+      const id = slug(category.name)
+      const section = sections.get(id) ?? { id, name: category.name, items: [] }
+      for (const item of category.items) {
+        section.items.push({
+          id: `${slug(store.name)}-${slug(item.name)}`,
+          name: item.name,
+          price: item.price,
+          snap: item.snapEligible ? "eligible" : "not-eligible",
+          store: store.name,
+        })
+      }
+      sections.set(id, section)
+    }
+  }
+  return [...sections.values()]
+}
+
+async function readSavedMenu() {
+  try {
+    const raw = await readFile(menuPath, "utf8")
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== "object") {
+      return null
+    }
+    const record = parsed as { photoUrl?: unknown; sections?: unknown; source?: unknown }
+    return {
+      photoUrl: httpsUrl(record.photoUrl),
+      source: record.source === "saved" ? "saved" : "",
+      sections: Array.isArray(record.sections)
+        ? record.sections.flatMap((entry) => {
+            const section = readSection(entry)
+            return section ? [section] : []
+          })
+        : [],
+    }
+  } catch {
+    return null
+  }
+}
+
 async function writeMenu(menu: MenuData) {
   await mkdir(path.dirname(menuPath), { recursive: true })
-  await writeFile(menuPath, `${JSON.stringify(menu, null, 2)}\n`)
+  await writeFile(
+    menuPath,
+    `${JSON.stringify({ ...menu, source: "saved" }, null, 2)}\n`
+  )
+}
+
+function slug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
 }
 
 function readSection(value: unknown): MenuSection | null {
