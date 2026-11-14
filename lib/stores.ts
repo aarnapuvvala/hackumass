@@ -1,14 +1,22 @@
-import { access, readFile } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 import path from "node:path"
 import type { StoreAccount } from "@/lib/accounts"
+import { loadCatalogStores, publicStore } from "@/lib/catalog"
 
-const storesPath = path.join(process.cwd(), "data", "stores.json")
 const examplePath = path.join(process.cwd(), "data", "stores.example.json")
 
 export async function loadStores(): Promise<StoreAccount[]> {
-  const file = (await exists(storesPath)) ? storesPath : examplePath
+  const listed = await readExampleStores()
+  if (listed.length > 0) {
+    return listed
+  }
+  const catalog = await loadCatalogStores()
+  return catalog.map(publicStore)
+}
+
+async function readExampleStores(): Promise<StoreAccount[]> {
   try {
-    const raw = await readFile(file, "utf8")
+    const raw = await readFile(examplePath, "utf8")
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) {
       return []
@@ -16,15 +24,6 @@ export async function loadStores(): Promise<StoreAccount[]> {
     return parsed.filter(isStore)
   } catch {
     return []
-  }
-}
-
-async function exists(file: string) {
-  try {
-    await access(file)
-    return true
-  } catch {
-    return false
   }
 }
 

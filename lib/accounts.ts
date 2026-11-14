@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import { findCatalogStore, publicStore } from "@/lib/catalog"
 
 const accountsPath = path.join(process.cwd(), "data", "accounts.json")
 
@@ -47,6 +48,10 @@ export async function listStoreAccounts() {
 }
 
 export async function findStoreAccount(name: string) {
+  const catalogStore = await findCatalogStore(name)
+  if (catalogStore) {
+    return publicStore(catalogStore)
+  }
   const accounts = await readAccounts()
   const storeName = name.trim()
   return (
@@ -55,6 +60,24 @@ export async function findStoreAccount(name: string) {
         account.role === "store" && account.name.trim() === storeName
     ) ?? null
   )
+}
+
+export async function authenticateStore(name: string, password: string) {
+  const catalogStore = await findCatalogStore(name)
+  if (catalogStore) {
+    return catalogStore.password === password ? publicStore(catalogStore) : null
+  }
+
+  const account = await findStoreAccount(name)
+  if (!account) {
+    return null
+  }
+  const storedPassword =
+    "password" in account && typeof account.password === "string" ? account.password : ""
+  if (storedPassword && storedPassword !== password) {
+    return null
+  }
+  return account
 }
 
 export async function findCustomerAccount(username: string) {
