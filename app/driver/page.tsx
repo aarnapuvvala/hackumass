@@ -1,5 +1,8 @@
+import Link from "next/link"
 import { login } from "@/app/actions"
 import { LoginForm } from "@/components/login-form"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function DriverPage() {
   return (
@@ -11,6 +14,12 @@ export default function DriverPage() {
         </p>
       </div>
       <LoginForm action={login} submitLabel="Log in" />
+      <Link
+        href="/account"
+        className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 w-full")}
+      >
+        Create an account
+      </Link>
     </main>
   )
 }
