@@ -38,6 +38,7 @@ export async function continueAsGuest() {
   cookieStore.set("auth", "guest", cookieOptions)
   cookieStore.delete("username")
   cookieStore.delete("password")
+  redirect("/customer_account")
 }
 
 export async function login(formData: FormData) {
@@ -51,6 +52,9 @@ export async function login(formData: FormData) {
   cookieStore.set("username", username, cookieOptions)
   cookieStore.set("password", password, cookieOptions)
   cookieStore.set("auth", "login", cookieOptions)
+  if (cookieStore.get("role")?.value === "customer") {
+    redirect("/customer_account")
+  }
 }
 
 export type CreateAccountState = {
@@ -74,6 +78,11 @@ export async function createAccount(
       return { ok: false, error: "Username and password are required." }
     }
     account = { role, username, password, createdAt }
+    await addAccount(account)
+    cookieStore.set("username", username, cookieOptions)
+    cookieStore.set("password", password, cookieOptions)
+    cookieStore.set("auth", "login", cookieOptions)
+    redirect("/customer_account")
   } else if (role === "driver") {
     const username = text(formData, "username")
     const password = String(formData.get("password") ?? "")

@@ -46,6 +46,16 @@ export async function listStoreAccounts() {
   return accounts.filter((account): account is StoreAccount => account.role === "store")
 }
 
+export async function findCustomerAccount(username: string) {
+  const accounts = await readAccounts()
+  return (
+    accounts.find(
+      (account): account is CustomerAccount =>
+        account.role === "customer" && account.username === username
+    ) ?? null
+  )
+}
+
 export async function addAccount(account: Account) {
   await mkdir(path.dirname(accountsPath), { recursive: true })
   const accounts = await readAccounts()
