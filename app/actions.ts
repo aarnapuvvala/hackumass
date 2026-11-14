@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { addAccount, type Account } from "@/lib/accounts"
+import { addAccount, findCustomerAccount, type Account } from "@/lib/accounts"
 import { geocodeAddress, milesBetween } from "@/lib/geo"
 
 const ROLES = ["customer", "driver", "store"] as const
@@ -33,6 +33,12 @@ export async function selectRole(formData: FormData) {
   redirect(`/${role}`)
 }
 
+export async function startCustomerSignup() {
+  const cookieStore = await cookies()
+  cookieStore.set("role", "customer", cookieOptions)
+  redirect("/account")
+}
+
 export async function continueAsGuest() {
   const cookieStore = await cookies()
   cookieStore.set("auth", "guest", cookieOptions)
@@ -49,9 +55,23 @@ export async function login(formData: FormData) {
   }
 
   const cookieStore = await cookies()
-  cookieStore.set("username", username, cookieOptions)
+  const account = await findCustomerAccount(username)
+  const signedInName =
+    account && account.password === password ? account.username : username
+  cookieStore.set("username", signedInName, cookieOptions)
   cookieStore.set("password", password, cookieOptions)
   cookieStore.set("auth", "login", cookieOptions)
+  const redirectTo = String(formData.get("redirectTo") ?? "")
+  if (redirectTo === "/customer_account") {
+    cookieStore.set("role", "customer", cookieOptions)
+    redirect("/customer_account")
+  }
+  if (redirectTo === "/account-store" || cookieStore.get("role")?.value === "store") {
+    if (redirectTo === "/account-store") {
+      cookieStore.set("role", "store", cookieOptions)
+    }
+    redirect("/account-store")
+  }
   if (cookieStore.get("role")?.value === "customer") {
     redirect("/customer_account")
   }
@@ -67,7 +87,8 @@ export async function createAccount(
   formData: FormData
 ): Promise<CreateAccountState> {
   const cookieStore = await cookies()
-  const role = cookieStore.get("role")?.value
+  const submittedRole = String(formData.get("accountRole") ?? "")
+  const role = isRole(submittedRole) ? submittedRole : cookieStore.get("role")?.value
   const createdAt = new Date().toISOString()
 
   let account: Account
@@ -79,6 +100,7 @@ export async function createAccount(
     }
     account = { role, username, password, createdAt }
     await addAccount(account)
+    cookieStore.set("role", "customer", cookieOptions)
     cookieStore.set("username", username, cookieOptions)
     cookieStore.set("password", password, cookieOptions)
     cookieStore.set("auth", "login", cookieOptions)
@@ -124,6 +146,10 @@ export async function createAccount(
   }
 
   await addAccount(account)
+  if (role === "store") {
+    cookieStore.set("auth", "login", cookieOptions)
+    redirect("/account-store")
+  }
   return { ok: true }
 }
 

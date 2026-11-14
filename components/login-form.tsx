@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button"
 export function LoginForm({
   action,
   submitLabel,
+  redirectTo,
 }: {
   action: (formData: FormData) => void | Promise<void>
   submitLabel: string
+  redirectTo?: "/account-store" | "/customer_account"
 }) {
   return (
     <form action={action} className="flex flex-col gap-4">
+      {redirectTo ? <input type="hidden" name="redirectTo" value={redirectTo} /> : null}
       <label className="flex flex-col gap-1.5 text-sm font-medium">
         Username
         <input

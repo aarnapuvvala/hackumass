@@ -57,6 +57,7 @@ export function CreateAccountForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="accountRole" value={role} />
       {role === "store" ? (
         <>
           <Field label="Name" name="name" autoComplete="organization" />
