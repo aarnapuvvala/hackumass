@@ -119,7 +119,7 @@ export async function createOrder(
   const customer =
     cookieStore.get("auth")?.value === "login" && username ? username : "guest"
   await addOrder({ address, customer, items })
-  return { ok: true, address }
+  redirect("/customer_account")
 }
 
 export async function assignOrder(formData: FormData) {

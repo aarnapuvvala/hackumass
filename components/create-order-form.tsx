@@ -1,7 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useActionState, useState } from "react"
 import { createOrder, type CreateOrderState } from "@/app/actions"
 import { formatMoney, useCart } from "@/components/cart-provider"
 import { Button } from "@/components/ui/button"
@@ -10,7 +9,6 @@ const fieldClassName =
   "h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 export function CreateOrderForm() {
-  const router = useRouter()
   const { items, clear, ready } = useCart()
   const [address, setAddress] = useState("")
   const [state, formAction, pending] = useActionState<CreateOrderState, FormData>(
@@ -20,19 +18,22 @@ export function CreateOrderForm() {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const pickups = [...new Set(items.map((item) => item.pickup).filter(Boolean))]
 
-  useEffect(() => {
-    if (state?.ok) {
-      clear()
-      router.push("/customer_account")
-    }
-  }, [state, clear, router])
-
-  if (state?.ok) {
-    return <p className="text-sm text-muted-foreground">Order created. Returning to your account…</p>
-  }
-
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form
+      action={formAction}
+      className="flex flex-col gap-6"
+      onSubmit={(event) => {
+        if (items.length === 0 || address.trim() === "") {
+          return
+        }
+        const itemsInput = event.currentTarget.elements.namedItem("items")
+        const savedItems = itemsInput instanceof HTMLInputElement ? itemsInput.value : ""
+        clear()
+        if (itemsInput instanceof HTMLInputElement) {
+          itemsInput.value = savedItems
+        }
+      }}
+    >
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Create an order</h1>
         <p className="text-muted-foreground">
