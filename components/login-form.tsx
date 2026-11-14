@@ -9,6 +9,7 @@ export function LoginForm({
   submitLabel: string
   redirectTo?: "/account-store" | "/customer_account"
 }) {
+  const usernameLabel = redirectTo === "/account-store" ? "Store name" : "Username"
   return (
     <form action={action} className="flex flex-col gap-4">
       {redirectTo ? <input type="hidden" name="redirectTo" value={redirectTo} /> : null}
