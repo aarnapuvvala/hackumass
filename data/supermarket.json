@@ -1,0 +1,94 @@
+{
+  "stores": [
+    {
+      "role": "store",
+      "name": "Big Y Supermarkets",
+      "username": "Big Y Supermarkets",
+      "password": "bigy123",
+      "address": "175 University Dr, Amherst, MA 01002",
+      "snapEligible": true,
+      "categories": [
+        {
+          "name": "Produce",
+          "items": [
+            { "name": "Bananas", "price": "0.69", "snapEligible": true },
+            { "name": "Gala Apples", "price": "1.79", "snapEligible": true }
+          ]
+        },
+        {
+          "name": "Dairy",
+          "items": [
+            { "name": "Whole Milk", "price": "3.89", "snapEligible": true },
+            { "name": "Sharp Cheddar", "price": "5.49", "snapEligible": true }
+          ]
+        },
+        {
+          "name": "Deli",
+          "items": [
+            { "name": "Rotisserie Chicken", "price": "8.99", "snapEligible": false }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "store",
+      "name": "Atkins Farms Country Market",
+      "username": "Atkins Farms Country Market",
+      "password": "atkins123",
+      "address": "1150 West St, Amherst, MA 01002",
+      "snapEligible": true,
+      "categories": [
+        {
+          "name": "Produce",
+          "items": [
+            { "name": "Local Apples", "price": "2.49", "snapEligible": true },
+            { "name": "Butternut Squash", "price": "1.99", "snapEligible": true }
+          ]
+        },
+        {
+          "name": "Dairy",
+          "items": [
+            { "name": "Farm Eggs", "price": "6.50", "snapEligible": true },
+            { "name": "Cheddar Curds", "price": "7.99", "snapEligible": true }
+          ]
+        },
+        {
+          "name": "Deli",
+          "items": [
+            { "name": "Hot Apple Cider", "price": "3.50", "snapEligible": false }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "store",
+      "name": "Amherst Market",
+      "username": "Amherst Market",
+      "password": "amherst123",
+      "address": "259 Triangle St, Amherst, MA 01002",
+      "snapEligible": false,
+      "categories": [
+        {
+          "name": "Produce",
+          "items": [
+            { "name": "Yellow Onions", "price": "1.29", "snapEligible": true },
+            { "name": "Roma Tomatoes", "price": "2.79", "snapEligible": true }
+          ]
+        },
+        {
+          "name": "Dairy",
+          "items": [
+            { "name": "2% Milk", "price": "3.69", "snapEligible": true },
+            { "name": "American Cheese", "price": "4.29", "snapEligible": true }
+          ]
+        },
+        {
+          "name": "Deli",
+          "items": [
+            { "name": "Hot Breakfast Sandwich", "price": "5.99", "snapEligible": false }
+          ]
+        }
+      ]
+    }
+  ]
+}
