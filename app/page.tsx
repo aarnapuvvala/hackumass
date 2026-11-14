@@ -25,21 +25,21 @@ const roles = [
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center gap-8 px-4 py-10 sm:px-6 sm:py-16">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Choose a role</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Choose a role</h1>
+        <p className="max-w-xl text-muted-foreground">
           Pick how you want to continue. Your choice is saved in a role cookie.
         </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {roles.map(({ role, title, description, icon: Icon }) => (
           <form key={role} action={selectRole} className="flex">
             <input type="hidden" name="role" value={role} />
             <Button
               type="submit"
               variant="outline"
-              className="h-auto w-full flex-col items-start gap-3 whitespace-normal rounded-xl p-5 text-left"
+              className="h-auto w-full flex-row items-start gap-4 whitespace-normal rounded-xl p-5 text-left lg:flex-col lg:gap-3"
             >
               <Icon />
               <span className="text-base font-semibold">{title}</span>
