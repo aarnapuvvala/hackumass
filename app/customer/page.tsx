@@ -1,8 +1,6 @@
-import Link from "next/link"
-import { continueAsGuest, login } from "@/app/actions"
+import { continueAsGuest, login, startCustomerSignup } from "@/app/actions"
 import { LoginForm } from "@/components/login-form"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 export default function CustomerPage() {
   return (
@@ -16,14 +14,13 @@ export default function CustomerPage() {
       </div>
       <div className="flex flex-col gap-4">
         <h2 className="text-sm font-medium">Log in</h2>
-        <LoginForm action={login} submitLabel="Log in" />
+        <LoginForm action={login} submitLabel="Log in" redirectTo="/customer_account" />
       </div>
-      <Link
-        href="/account"
-        className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 w-full")}
-      >
-        Create an account
-      </Link>
+      <form action={startCustomerSignup}>
+        <Button type="submit" variant="outline" size="lg" className="h-10 w-full">
+          Create an account
+        </Button>
+      </form>
       <form action={continueAsGuest}>
         <Button type="submit" variant="outline" size="lg" className="h-10 w-full">
           Continue as guest
