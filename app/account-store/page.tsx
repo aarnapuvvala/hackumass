@@ -4,20 +4,20 @@ import { connection } from "next/server"
 import { CreateMenu } from "@/components/create-menu"
 import { findStoreAccount } from "@/lib/accounts"
 import { loadMenu, menuForStore } from "@/lib/menu"
+import { PageFrame, PageIntro } from "@/components/page-frame"
 
 export default function AccountStorePage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-12">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Store account</h1>
-        <p className="text-muted-foreground">
-          Create the menu shoppers will see for this store.
-        </p>
-      </div>
+    <PageFrame width="md">
+      <PageIntro
+        kicker="Store"
+        title="Store Account"
+        description="Build the menu shoppers see for this store."
+      />
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading menu…</p>}>
         <StoreMenu />
       </Suspense>
-    </main>
+    </PageFrame>
   )
 }
 

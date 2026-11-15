@@ -1,19 +1,18 @@
 "use client"
 
-import { useActionState, useEffect, useRef, useState } from "react"
+import { useActionState, useEffect, useRef, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { createOrder, type CreateOrderState } from "@/app/actions"
 import { formatMoney, useCart, type CartItem } from "@/components/cart-provider"
 import { PaymentDialog, type PaidCheckout } from "@/components/payment-dialog"
 import { Button } from "@/components/ui/button"
 
-const fieldClassName =
-  "h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-
 export function CreateOrderForm() {
   const { items, ready, clear } = useCart()
   const router = useRouter()
   const [address, setAddress] = useState("")
+  const [clientError, setClientError] = useState<string | null>(null)
+  const addressRef = useRef<HTMLInputElement>(null)
   const [payOpen, setPayOpen] = useState(false)
   const [hiddenOrderId, setHiddenOrderId] = useState<string | null>(null)
   const seenOrder = useRef<string | null>(null)
@@ -27,7 +26,6 @@ export function CreateOrderForm() {
   const otherTotal = otherItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const total = snapTotal + otherTotal
   const pickups = [...new Set(items.map((item) => item.pickup).filter(Boolean))]
-  const canPay = ready && items.length > 0 && address.trim() !== ""
   const confirmation =
     state?.ok && hiddenOrderId !== state.orderId
       ? { orderId: state.orderId, card: state.card, ebt: state.ebt }
@@ -55,18 +53,30 @@ export function CreateOrderForm() {
   return (
     <form
       className="flex flex-col gap-6"
-      onSubmit={(event) => {
+      onSubmit={(event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        if (canPay) {
-          setPayOpen(true)
+        if (!ready) {
+          setClientError("Your cart is still loading…")
+          return
         }
+        if (items.length === 0) {
+          setClientError("Add items to your cart, then come back to place the order.")
+          return
+        }
+        if (!address.trim()) {
+          setClientError("Enter a delivery address so the driver knows where to stop.")
+          addressRef.current?.focus()
+          return
+        }
+        setClientError(null)
+        setPayOpen(true)
       }}
     >
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Create an order</h1>
-        <p className="text-muted-foreground">
-          Change the delivery address, then pay to create the order. Sales tax, delivery, and tip
-          are added at payment and cannot be charged to EBT.
+        <h1 className="text-3xl font-semibold tracking-tight">Create an Order</h1>
+        <p className="text-pretty text-muted-foreground">
+          Confirm the delivery address, then pay to place the order. Sales tax, delivery, and tip
+          are added at payment and stay off EBT.
         </p>
       </div>
       {pickups.length > 0 ? (
@@ -89,28 +99,34 @@ export function CreateOrderForm() {
       )}
       <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
         <p className="font-medium">Order total</p>
-        <p className="text-lg font-semibold">{formatMoney(total)}</p>
+        <p className="text-lg font-semibold tabular-nums">{formatMoney(total)}</p>
       </div>
       <label className="flex flex-col gap-1.5 text-sm font-medium">
         Delivery address
         <input
+          ref={addressRef}
           name="address"
           type="text"
-          required
           value={address}
           onChange={(event) => setAddress(event.target.value)}
           autoComplete="street-address"
-          placeholder="123 Main St, Amherst, MA"
-          className={fieldClassName}
+          placeholder="123 Main St, Amherst, MA…"
+          aria-invalid={clientError?.includes("address") ? true : undefined}
+          className="field"
         />
       </label>
+      {clientError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {clientError}
+        </p>
+      ) : null}
       {state && !state.ok ? (
         <p className="text-sm text-destructive" role="alert">
           {state.error}
         </p>
       ) : null}
-      <Button type="submit" size="lg" className="h-10" disabled={pending || !canPay}>
-        {pending ? "Creating order…" : "Create order"}
+      <Button type="submit" size="lg" className="h-11" disabled={pending}>
+        {pending ? "Creating order…" : "Continue to Payment"}
       </Button>
       <PaymentDialog
         open={payOpen || confirmation != null}
@@ -155,11 +171,11 @@ function OrderGroup({
               key={item.id}
               className="surface flex items-start justify-between gap-3 p-3"
             >
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-muted-foreground">{item.detail}</p>
+              <div className="min-w-0">
+                <p className="break-words font-medium">{item.name}</p>
+                <p className="break-words text-sm text-muted-foreground">{item.detail}</p>
               </div>
-              <div className="text-right">
+              <div className="text-right tabular-nums">
                 <p className="text-sm font-medium">Qty {item.quantity}</p>
                 <p className="text-sm font-medium">
                   {item.price === 0 ? "Free" : formatMoney(item.price * item.quantity)}
@@ -171,7 +187,7 @@ function OrderGroup({
       )}
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium">{totalLabel}</p>
-        <p className="text-sm font-semibold">{formatMoney(subtotal)}</p>
+        <p className="text-sm font-semibold tabular-nums">{formatMoney(subtotal)}</p>
       </div>
     </section>
   )

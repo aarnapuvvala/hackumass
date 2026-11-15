@@ -32,11 +32,11 @@ export function StoreMenu({
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-border text-left">
-            <th className="px-3 py-2 font-medium">Category</th>
-            <th className="px-3 py-2 font-medium">Item</th>
-            <th className="px-3 py-2 font-medium">Price</th>
-            <th className="px-3 py-2 font-medium">SNAP eligibility</th>
-            <th className="px-3 py-2 font-medium">
+            <th scope="col" className="px-3 py-2 font-medium">Category</th>
+            <th scope="col" className="px-3 py-2 font-medium">Item</th>
+            <th scope="col" className="px-3 py-2 font-medium">Price</th>
+            <th scope="col" className="px-3 py-2 font-medium">SNAP Eligibility</th>
+            <th scope="col" className="px-3 py-2 font-medium">
               <span className="sr-only">Add to cart</span>
             </th>
           </tr>
@@ -44,9 +44,9 @@ export function StoreMenu({
         <tbody>
           {rows.map((row) => (
             <tr key={row.id} className="border-b border-border last:border-b-0">
-              <td className="px-3 py-2">{row.category}</td>
-              <td className="px-3 py-2">{row.name}</td>
-              <td className="px-3 py-2">{formatMoney(row.price)}</td>
+              <td className="break-words px-3 py-2">{row.category}</td>
+              <td className="break-words px-3 py-2">{row.name}</td>
+              <td className="px-3 py-2 tabular-nums">{formatMoney(row.price)}</td>
               <td className="px-3 py-2">{row.snap}</td>
               <td className="px-3 py-2 text-right">
                 <Button
@@ -63,7 +63,7 @@ export function StoreMenu({
                     })
                   }
                 >
-                  Add to cart
+                  Add to Cart
                 </Button>
               </td>
             </tr>

@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { CartProvider } from "@/components/cart-provider"
 import { ShoppingCartButton } from "@/components/shopping-cart"
+import { PageFrame } from "@/components/page-frame"
 import { StoreMenu, type MenuTableRow } from "@/components/store-menu"
 import { buttonVariants } from "@/components/ui/button"
 import { loadMenu, menuForStore, type SnapStatus } from "@/lib/menu"
@@ -19,11 +20,11 @@ export default function MenuPage({
   searchParams: Promise<{ name?: string | string[]; address?: string | string[] }>
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-12">
+    <PageFrame width="lg">
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading menu…</p>}>
         <MenuHome searchParams={searchParams} />
       </Suspense>
-    </main>
+    </PageFrame>
   )
 }
 
@@ -56,9 +57,9 @@ async function MenuHome({
               href="/customer_account"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
             >
-              Back to stores
+              Back to Stores
             </Link>
-            <h1 className="text-2xl font-semibold tracking-tight">{storeName}</h1>
+            <h1 className="break-words text-3xl font-semibold tracking-tight">{storeName}</h1>
             {storeAddress ? <p className="text-sm text-muted-foreground">{storeAddress}</p> : null}
           </div>
           <ShoppingCartButton />

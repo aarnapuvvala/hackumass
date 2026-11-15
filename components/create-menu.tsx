@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import type { MenuSection, SnapStatus } from "@/lib/menu"
 
-const fieldClassName =
-  "h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+const fieldClassName = "field"
 
 const maxBytes = 4 * 1024 * 1024
 
@@ -42,6 +41,18 @@ export function CreateMenu({
   const [savingMenu, setSavingMenu] = useState(false)
   const [viewing, setViewing] = useState(false)
   const [activeSection, setActiveSection] = useState(initialSections[0]?.id ?? "")
+  const [dirty, setDirty] = useState(false)
+
+  useEffect(() => {
+    if (!dirty) {
+      return
+    }
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault()
+    }
+    window.addEventListener("beforeunload", onBeforeUnload)
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [dirty])
 
   async function uploadPhoto(file: File | undefined) {
     setPhotoUrl("")
@@ -50,11 +61,11 @@ export function CreateMenu({
       return
     }
     if (!file.type.startsWith("image/")) {
-      setUploadError("File must be an image.")
+      setUploadError("Choose an image file, then upload it again.")
       return
     }
     if (file.size >= maxBytes) {
-      setUploadError("Image must be under 4 MB.")
+      setUploadError("Choose an image under 4 MB, then upload it again.")
       return
     }
 
@@ -79,7 +90,11 @@ export function CreateMenu({
 
   async function saveMenuPhoto(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (uploading || !photoUrl) {
+    if (uploading) {
+      return
+    }
+    if (!photoUrl) {
+      setPhotoError("Choose a menu photo, then save it.")
       return
     }
     setSavingPhoto(true)
@@ -106,6 +121,7 @@ export function CreateMenu({
   }
 
   function updateSection(id: string, patch: Partial<MenuSection>) {
+    setDirty(true)
     setMenuSaved(false)
     setSections((current) =>
       current.map((section) => (section.id === id ? { ...section, ...patch } : section))
@@ -117,6 +133,7 @@ export function CreateMenu({
     itemId: string,
     patch: Partial<MenuSection["items"][number]>
   ) {
+    setDirty(true)
     setMenuSaved(false)
     setSections((current) =>
       current.map((section) =>
@@ -148,6 +165,7 @@ export function CreateMenu({
         setMenuError(result.error || "Could not save the menu.")
         return
       }
+      setDirty(false)
       setSections(result.sections)
       setActiveSection((current) =>
         result.sections?.some((section) => section.id === current)
@@ -175,20 +193,20 @@ export function CreateMenu({
       <section className="surface subtle-shadow flex flex-col gap-8 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold">Create menu</h2>
+            <h2 className="text-lg font-semibold">Create Menu</h2>
             <p className="text-sm text-muted-foreground">
               Upload a photo of the menu, or build sections and items by hand.
             </p>
           </div>
           <Button type="button" variant="outline" onClick={() => setViewing((open) => !open)}>
-            {viewing ? "Hide menu" : "View menu"}
+            {viewing ? "Hide Menu" : "View Menu"}
           </Button>
         </div>
 
         <form onSubmit={saveMenuPhoto} className="flex flex-col gap-4">
-          <h3 className="text-sm font-medium">Menu photo</h3>
+          <h3 className="text-sm font-medium">Menu Photo</h3>
           <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Photo of the menu
+            Photo of the Menu
             <input
               type="file"
               accept="image/*"
@@ -221,15 +239,18 @@ export function CreateMenu({
             type="submit"
             size="lg"
             className="h-10"
-            disabled={uploading || !photoUrl || savingPhoto}
+            disabled={uploading || savingPhoto}
           >
-            {savingPhoto ? "Saving…" : "Save menu photo"}
+            {savingPhoto ? "Saving…" : "Save Menu Photo"}
           </Button>
           {menuPhotoUrl ? (
             <img
               src={menuPhotoUrl}
-              alt="Menu"
-              className="max-h-80 w-full rounded-lg border border-border object-contain"
+              alt={`Printed menu for ${storeName}`}
+              width={960}
+              height={720}
+              loading="lazy"
+              className="h-auto max-h-80 w-full rounded-lg border border-border object-contain"
             />
           ) : null}
         </form>
@@ -250,8 +271,10 @@ export function CreateMenu({
                 <label className="flex flex-col gap-1.5 text-sm font-medium">
                   Section
                   <input
+                    name={`section-${section.id}`}
                     value={section.name}
                     required
+                    autoComplete="off"
                     onChange={(event) => updateSection(section.id, { name: event.target.value })}
                     className={fieldClassName}
                   />
@@ -261,8 +284,10 @@ export function CreateMenu({
                     <label className="flex flex-col gap-1.5 text-sm font-medium">
                       Item
                       <input
+                        name={`item-${item.id}`}
                         value={item.name}
                         required
+                        autoComplete="off"
                         onChange={(event) =>
                           updateItem(section.id, item.id, { name: event.target.value })
                         }
@@ -272,9 +297,12 @@ export function CreateMenu({
                     <label className="flex flex-col gap-1.5 text-sm font-medium">
                       Price
                       <input
+                        name={`price-${item.id}`}
                         value={item.price}
                         inputMode="decimal"
-                        placeholder="4.99"
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="4.99…"
                         onChange={(event) =>
                           updateItem(section.id, item.id, { price: event.target.value })
                         }
@@ -284,6 +312,7 @@ export function CreateMenu({
                     <label className="flex flex-col gap-1.5 text-sm font-medium">
                       SNAP
                       <select
+                        name={`snap-${item.id}`}
                         value={item.snap}
                         onChange={(event) =>
                           updateItem(section.id, item.id, {
@@ -303,6 +332,7 @@ export function CreateMenu({
                       type="button"
                       variant="ghost"
                       className="self-end"
+                      aria-label={`Remove ${item.name || "item"}`}
                       onClick={() =>
                         updateSection(section.id, {
                           items: section.items.filter((entry) => entry.id !== item.id),
@@ -332,17 +362,19 @@ export function CreateMenu({
                       })
                     }
                   >
-                    Add item
+                    Add Item
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
+                    aria-label={`Remove ${section.name || "section"}`}
                     onClick={() => {
+                      setDirty(true)
                       setMenuSaved(false)
                       setSections((current) => current.filter((entry) => entry.id !== section.id))
                     }}
                   >
-                    Remove section
+                    Remove Section
                   </Button>
                 </div>
               </div>
@@ -353,13 +385,14 @@ export function CreateMenu({
             type="button"
             variant="outline"
             onClick={() => {
+              setDirty(true)
               setMenuSaved(false)
               const id = crypto.randomUUID()
               setSections((current) => [...current, { id, name: "", items: [] }])
               setActiveSection((current) => current || id)
             }}
           >
-            Add section
+            Add Section
           </Button>
 
           {menuError ? (
@@ -373,7 +406,7 @@ export function CreateMenu({
             </p>
           ) : null}
           <Button type="submit" size="lg" className="h-10" disabled={savingMenu}>
-            {savingMenu ? "Saving…" : "Save menu"}
+            {savingMenu ? "Saving…" : "Save Menu"}
           </Button>
         </form>
       </section>
@@ -414,8 +447,11 @@ function MenuView({
       {photoUrl ? (
         <img
           src={photoUrl}
-          alt="Menu"
-          className="max-h-80 w-full rounded-lg border border-border object-contain"
+          alt="Printed menu"
+          width={960}
+          height={720}
+          loading="lazy"
+          className="h-auto max-h-80 w-full rounded-lg border border-border object-contain"
         />
       ) : null}
       {sections.length === 0 ? (
@@ -451,9 +487,9 @@ function MenuView({
                 <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-border text-left">
-                      <th className="px-3 py-2 font-medium">Item</th>
-                      <th className="px-3 py-2 font-medium">Price</th>
-                      <th className="px-3 py-2 font-medium">SNAP eligibility</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Item</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Price</th>
+                      <th scope="col" className="px-3 py-2 font-medium">SNAP Eligibility</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -466,8 +502,8 @@ function MenuView({
                     ) : (
                       section.items.map((item) => (
                         <tr key={item.id} className="border-b border-border">
-                          <td className="px-3 py-2">{item.name}</td>
-                          <td className="px-3 py-2">{formatPrice(item.price)}</td>
+                          <td className="break-words px-3 py-2">{item.name}</td>
+                          <td className="px-3 py-2 tabular-nums">{formatPrice(item.price)}</td>
                           <td className="px-3 py-2">{snapLabels[item.snap]}</td>
                         </tr>
                       ))

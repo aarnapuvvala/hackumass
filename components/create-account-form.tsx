@@ -1,11 +1,8 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useRef, useState, type FormEvent } from "react"
 import { createAccount, type CreateAccountState } from "@/app/actions"
 import { Button } from "@/components/ui/button"
-
-const fieldClassName =
-  "h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 const maxBytes = 4 * 1024 * 1024
 
@@ -21,6 +18,8 @@ export function CreateAccountForm({
   const [photoUrl, setPhotoUrl] = useState("")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState("")
+  const [clientError, setClientError] = useState("")
+  const licenseRef = useRef<HTMLInputElement>(null)
 
   async function uploadLicense(file: File | undefined) {
     setPhotoUrl("")
@@ -29,11 +28,11 @@ export function CreateAccountForm({
       return
     }
     if (!file.type.startsWith("image/")) {
-      setUploadError("File must be an image.")
+      setUploadError("Choose an image file, then upload it again.")
       return
     }
     if (file.size >= maxBytes) {
-      setUploadError("Image must be under 4 MB.")
+      setUploadError("Choose an image under 4 MB, then upload it again.")
       return
     }
 
@@ -57,7 +56,24 @@ export function CreateAccountForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={formAction}
+      className="flex flex-col gap-4"
+      onSubmit={(event: FormEvent<HTMLFormElement>) => {
+        if (uploading) {
+          event.preventDefault()
+          setClientError("Wait for the license photo to finish uploading.")
+          return
+        }
+        if (role === "driver" && !photoUrl) {
+          event.preventDefault()
+          setClientError("Upload a photo of your driver’s license, then create the account.")
+          licenseRef.current?.focus()
+          return
+        }
+        setClientError("")
+      }}
+    >
       <input type="hidden" name="accountRole" value={role} />
       {role === "store" ? (
         <>
@@ -69,13 +85,13 @@ export function CreateAccountForm({
             type="password"
             autoComplete="new-password"
           />
-          <label className="flex items-center gap-2 text-sm font-medium">
+          <label className="flex min-h-11 items-center gap-3 text-sm font-medium">
             <input
               name="snapEligible"
               type="checkbox"
               className="size-4 rounded border border-input"
             />
-            SNAP eligible
+            SNAP Eligible
           </label>
         </>
       ) : (
@@ -92,15 +108,16 @@ export function CreateAccountForm({
 
       {role === "driver" ? (
         <>
-          <Field label="Car license plate" name="licensePlate" autoComplete="off" />
-          <Field label="Car model" name="carModel" autoComplete="off" />
-          <Field label="Car color" name="carColor" autoComplete="off" />
+          <Field label="Car License Plate" name="licensePlate" autoComplete="off" spellCheck={false} />
+          <Field label="Car Model" name="carModel" autoComplete="off" />
+          <Field label="Car Color" name="carColor" autoComplete="off" />
           <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Driver&apos;s license
+            Driver’s License
             <input
+              ref={licenseRef}
+              name="license"
               type="file"
               accept="image/*"
-              required={!photoUrl}
               disabled={uploading}
               onChange={(event) => {
                 void uploadLicense(event.target.files?.[0])
@@ -125,6 +142,11 @@ export function CreateAccountForm({
         </>
       ) : null}
 
+      {clientError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {clientError}
+        </p>
+      ) : null}
       {state?.error ? (
         <p className="text-sm text-destructive" role="alert">
           {state.error}
@@ -140,9 +162,9 @@ export function CreateAccountForm({
         type="submit"
         size="lg"
         className="h-10"
-        disabled={pending || uploading || (role === "driver" && !photoUrl)}
+        disabled={pending || uploading}
       >
-        {pending ? "Saving…" : "Create account"}
+        {pending ? "Saving…" : "Create Account"}
       </Button>
     </form>
   )
@@ -153,11 +175,13 @@ function Field({
   name,
   type = "text",
   autoComplete,
+  spellCheck,
 }: {
   label: string
   name: string
   type?: string
   autoComplete: string
+  spellCheck?: boolean
 }) {
   return (
     <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -167,7 +191,9 @@ function Field({
         type={type}
         required
         autoComplete={autoComplete}
-        className={fieldClassName}
+        autoCapitalize={name === "username" ? "none" : undefined}
+        spellCheck={spellCheck ?? (name === "username" ? false : undefined)}
+        className="field"
       />
     </label>
   )

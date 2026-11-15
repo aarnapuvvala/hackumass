@@ -1,25 +1,27 @@
 import Link from "next/link"
 import { login } from "@/app/actions"
 import { LoginForm } from "@/components/login-form"
+import { PageFrame, PageIntro } from "@/components/page-frame"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export default function StorePage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-6 py-12">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Store</h1>
-        <p className="text-muted-foreground">
-          Log in with your store name and a password.
-        </p>
-      </div>
-      <LoginForm action={login} submitLabel="Log in" redirectTo="/account-store" />
+    <PageFrame>
+      <PageIntro
+        kicker="Store"
+        title="Sign In"
+        description="Log in with your store name and password to edit the menu."
+      />
+      <section className="surface subtle-shadow p-5">
+        <LoginForm action={login} submitLabel="Log In" redirectTo="/account-store" />
+      </section>
       <Link
         href="/account"
-        className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 w-full")}
+        className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 w-full")}
       >
-        Create an account
+        Create an Account
       </Link>
-    </main>
+    </PageFrame>
   )
 }

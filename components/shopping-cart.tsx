@@ -1,16 +1,16 @@
 "use client"
 
 import { useEffect, useId, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { ShoppingCart } from "lucide-react"
 import { formatMoney, useCart, type CartItem } from "@/components/cart-provider"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: boolean }) {
   const { items, removeItem, setQuantity } = useCart()
   const [open, setOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const router = useRouter()
   const titleId = useId()
   const count = items.reduce((total, item) => total + item.quantity, 0)
   const snapItems = items.filter((item) => item.snapEligible)
@@ -41,16 +41,21 @@ export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: bool
         className="h-10 shrink-0"
         onClick={() => setOpen(true)}
       >
-        <ShoppingCart />
+        <ShoppingCart aria-hidden="true" />
         Cart
-        <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+        <span
+          aria-live="polite"
+          className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground tabular-nums"
+        >
           {count}
+          <span className="sr-only">{count === 1 ? " item" : " items"}</span>
         </span>
       </Button>
       <dialog
         ref={dialogRef}
         aria-labelledby={titleId}
-        className="m-auto w-[min(100%-2rem,28rem)] rounded-xl border border-border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
+        data-lenis-prevent
+        className="app-dialog m-auto w-[min(100%-2rem,28rem)] rounded-xl border border-border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
         onClose={() => setOpen(false)}
         onClick={(event) => {
           if (event.target === dialogRef.current) {
@@ -61,7 +66,7 @@ export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: bool
         <div className="flex flex-col gap-4 p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 id={titleId} className="text-lg font-semibold">
-              Shopping cart
+              Shopping Cart
             </h2>
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
               Close
@@ -70,7 +75,7 @@ export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: bool
           {items.length === 0 ? (
             <p className="text-sm text-muted-foreground">Your cart is empty.</p>
           ) : groupBySnap ? (
-            <div className="flex max-h-80 flex-col gap-5 overflow-auto">
+            <div className="flex max-h-80 flex-col gap-5 overflow-auto overscroll-contain">
               <CartGroup
                 title="SNAP eligible"
                 totalLabel="SNAP total"
@@ -89,7 +94,7 @@ export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: bool
               />
             </div>
           ) : (
-            <ul className="flex max-h-80 flex-col gap-3 overflow-auto">
+            <ul className="flex max-h-80 flex-col gap-3 overflow-auto overscroll-contain">
               {items.map((item) => (
                 <CartLine
                   key={item.id}
@@ -103,24 +108,22 @@ export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: bool
           {groupBySnap ? null : (
             <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
               <p className="font-medium">Total</p>
-              <p className="text-lg font-semibold">{formatMoney(total)}</p>
+              <p className="text-lg font-semibold tabular-nums">{formatMoney(total)}</p>
             </div>
           )}
-          <Button
-            type="button"
-            size="lg"
-            className="h-10 w-full"
-            disabled={items.length === 0}
-            onClick={() => {
-              const dialog = dialogRef.current
-              if (dialog?.open) {
-                dialog.close()
-              }
-              router.push("/orders")
-            }}
-          >
-            Create order
-          </Button>
+          {items.length === 0 ? (
+            <Button type="button" size="lg" className="h-11 w-full" disabled>
+              Review Order
+            </Button>
+          ) : (
+            <Link
+              href="/orders"
+              className={cn(buttonVariants({ size: "lg" }), "h-11 w-full")}
+              onClick={() => setOpen(false)}
+            >
+              Review Order
+            </Link>
+          )}
         </div>
       </dialog>
     </>
@@ -161,7 +164,7 @@ function CartGroup({
       )}
       <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
         <p className="text-sm font-medium">{totalLabel}</p>
-        <p className="text-sm font-semibold">{formatMoney(subtotal)}</p>
+        <p className="text-sm font-semibold tabular-nums">{formatMoney(subtotal)}</p>
       </div>
     </section>
   )
@@ -179,14 +182,14 @@ function CartLine({
   return (
     <li className="surface flex flex-col gap-2 p-3">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-medium">{item.name}</p>
-          <p className="text-sm text-muted-foreground">{item.detail}</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="min-w-0">
+          <p className="break-words font-medium">{item.name}</p>
+          <p className="break-words text-sm text-muted-foreground">{item.detail}</p>
+          <p className="text-sm text-muted-foreground tabular-nums">
             {item.price === 0 ? "Free" : `${formatMoney(item.price)} each`}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-right tabular-nums">
           <p className="text-sm font-medium">Qty {item.quantity}</p>
           <p className="text-sm font-medium">
             {item.price === 0 ? "Free" : formatMoney(item.price * item.quantity)}
@@ -198,6 +201,7 @@ function CartLine({
           type="button"
           variant="outline"
           size="sm"
+          aria-label={`Decrease quantity of ${item.name}`}
           onClick={() => setQuantity(item.id, item.quantity - 1)}
         >
           −
@@ -206,11 +210,18 @@ function CartLine({
           type="button"
           variant="outline"
           size="sm"
+          aria-label={`Increase quantity of ${item.name}`}
           onClick={() => setQuantity(item.id, item.quantity + 1)}
         >
           +
         </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(item.id)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-label={`Remove ${item.name}`}
+          onClick={() => removeItem(item.id)}
+        >
           Remove
         </Button>
       </div>

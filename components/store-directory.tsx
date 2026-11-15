@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
 import { storeDistances } from "@/app/actions"
 import { useCart } from "@/components/cart-provider"
+import FadeContent from "@/components/FadeContent"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { StoreAccount } from "@/lib/accounts"
 import type { PantryDetail } from "@/lib/pantry"
@@ -111,6 +112,7 @@ export function StoreDirectory({
             ? "Stores are sorted by distance."
             : "Calculating distance…"}
     </p>
+    <FadeContent trigger="mount" duration={0.6} blur={8} className="flex flex-col">
     <ul className="flex flex-col gap-3">
       {ordered.map((store, index) => (
         <li
@@ -171,6 +173,7 @@ export function StoreDirectory({
         </li>
       ))}
     </ul>
+    </FadeContent>
     <PantryMenuDialog name={menuName} foods={menuFoods} onClose={() => setMenuName(null)} />
     </>
   )
@@ -231,6 +234,7 @@ function PantryMenuDialog({
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
+      data-lenis-prevent
       className="app-dialog m-auto w-[min(100%-2rem,28rem)] rounded-xl border border-border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
       onClose={onClose}
       onClick={(event) => {

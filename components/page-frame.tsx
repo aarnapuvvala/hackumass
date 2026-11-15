@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { Reveal } from "@/components/reveal"
 import { cn } from "@/lib/utils"
 
 const widths = {
@@ -43,11 +44,11 @@ export function PageIntro({
 }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <div className="flex min-w-0 flex-col gap-2">
+      <Reveal className="flex min-w-0 flex-col gap-2">
         {kicker ? <p className="text-sm font-medium text-primary">{kicker}</p> : null}
         <h1 className="break-words text-3xl font-semibold tracking-tight">{title}</h1>
         {description ? <div className="text-pretty text-muted-foreground">{description}</div> : null}
-      </div>
+      </Reveal>
       {actions ? <div className="shrink-0">{actions}</div> : null}
     </div>
   )

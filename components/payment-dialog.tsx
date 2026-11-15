@@ -18,8 +18,7 @@ import { formatMoney } from "@/lib/utils"
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
 const stripePromise = publishableKey.startsWith("pk_test_") ? loadStripe(publishableKey) : null
 
-const fieldClassName =
-  "h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+const fieldClassName = "field"
 
 const cardElementOptions = {
   style: {
@@ -99,7 +98,8 @@ export function PaymentDialog({
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
-      className="m-auto max-h-[min(100%-2rem,44rem)] w-[min(100%-2rem,32rem)] overflow-auto rounded-xl border border-border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
+      data-lenis-prevent
+      className="app-dialog m-auto max-h-[min(100%-2rem,44rem)] w-[min(100%-2rem,32rem)] overflow-auto overscroll-contain rounded-xl border border-border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
       onClose={onClose}
       onCancel={(event) => {
         if (pending || confirmation) {
@@ -115,7 +115,7 @@ export function PaymentDialog({
       <div className="flex flex-col gap-4 p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 id={titleId} className="text-lg font-semibold">
-            {confirmation ? "Payment confirmed" : "Pay for this order"}
+            {confirmation ? "Payment Confirmed" : "Pay for This Order"}
           </h2>
           {confirmation ? null : (
             <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={pending}>
@@ -168,7 +168,7 @@ function Confirmation({
           remainingBalance={confirmation.ebt.remainingBalance}
         />
       ) : null}
-      <Button type="button" size="lg" className="h-10" onClick={onDone}>
+      <Button type="button" size="lg" className="h-11" onClick={onDone}>
         Done
       </Button>
     </div>
@@ -189,10 +189,10 @@ function Receipt({
   return (
     <div className="surface flex flex-col gap-1 p-3">
       <p className="text-sm font-medium">{title}</p>
-      <p className="text-sm">Card •••• {last4}</p>
-      <p className="text-sm">Amount paid {formatMoney(amount)}</p>
+      <p className="text-sm tabular-nums">Card •••• {last4}</p>
+      <p className="text-sm tabular-nums">Amount paid {formatMoney(amount)}</p>
       {remainingBalance == null ? null : (
-        <p className="text-sm">Remaining balance {formatMoney(remainingBalance)}</p>
+        <p className="text-sm tabular-nums">Remaining balance {formatMoney(remainingBalance)}</p>
       )}
     </div>
   )
@@ -333,9 +333,13 @@ function PayForm({
       <label className="flex flex-col gap-1.5 text-sm font-medium">
         Tip
         <input
+          name="tip"
           value={tip}
           onChange={(event) => setTip(event.target.value)}
           inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="2.00…"
           className={fieldClassName}
         />
       </label>
@@ -359,7 +363,7 @@ function PayForm({
         <Button
           type="button"
           size="lg"
-          className="h-10"
+          className="h-11"
           disabled={pending || !checkoutId}
           onClick={() =>
             onPaid({
@@ -370,13 +374,13 @@ function PayForm({
             })
           }
         >
-          {pending ? "Placing order…" : "Place free order"}
+          {pending ? "Placing order…" : "Place Free Order"}
         </Button>
       ) : (
       <>
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium">Payment method</legend>
-        <label className="flex items-center gap-2 text-sm">
+        <legend className="text-sm font-medium">Payment Method</legend>
+        <label className="flex min-h-11 items-center gap-3 text-sm">
           <input
             type="radio"
             name="payment-method"
@@ -385,7 +389,7 @@ function PayForm({
           />
           Credit card for the full order
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex min-h-11 items-center gap-3 text-sm">
           <input
             type="radio"
             name="payment-method"
@@ -417,10 +421,13 @@ function PayForm({
         <label className="flex flex-col gap-1.5 text-sm font-medium">
           Amount to pay with EBT
           <input
+            name="ebt-amount"
             value={ebtAmount}
             onChange={(event) => setEbtAmount(event.target.value)}
             inputMode="decimal"
-            placeholder="0.00"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="12.50…"
             className={fieldClassName}
           />
         </label>
@@ -458,8 +465,10 @@ function PayForm({
             .env.local, then restart the app. The card still has to pay delivery, tax, and tip.
           </p>
           <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-            <p className="font-medium">Charge to card</p>
-            <p className="text-lg font-semibold">{cardCents == null ? "—" : money(cardCents)}</p>
+            <p className="font-medium">Charge to Card</p>
+            <p className="text-lg font-semibold tabular-nums">
+              {cardCents == null ? "—" : money(cardCents)}
+            </p>
           </div>
           <Button type="button" size="lg" className="h-10" disabled>
             Pay and place order
@@ -616,16 +625,23 @@ function CardPayment({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">Credit card</p>
-        <div className="rounded-lg border border-input bg-background px-3 py-3">
+        <p id="card-label" className="text-sm font-medium">
+          Credit Card
+        </p>
+        <div
+          aria-labelledby="card-label"
+          className="rounded-lg border border-input bg-background px-3 py-3"
+        >
           <CardElement options={cardElementOptions} />
         </div>
         <p className="text-xs text-muted-foreground">
           Stripe sandbox test card 4242 4242 4242 4242, any future expiration, any CVC, and any ZIP.
         </p>
         <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-          <p className="font-medium">Charge to card</p>
-          <p className="text-lg font-semibold">{cardCents == null ? "—" : money(cardCents)}</p>
+          <p className="font-medium">Charge to Card</p>
+          <p className="text-lg font-semibold tabular-nums">
+            {cardCents == null ? "—" : money(cardCents)}
+          </p>
         </div>
       </div>
       {message ? (
@@ -633,8 +649,8 @@ function CardPayment({
           {message}
         </p>
       ) : null}
-      <Button type="button" size="lg" className="h-10" disabled={busy || !stripe} onClick={() => void pay()}>
-        {busy ? "Processing payment…" : "Pay and place order"}
+      <Button type="button" size="lg" className="h-11" disabled={busy} onClick={() => void pay()}>
+        {busy ? "Processing payment…" : "Pay and Place Order"}
       </Button>
     </div>
   )
@@ -644,7 +660,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-muted-foreground">{label}</p>
-      <p className="font-medium">{value}</p>
+      <p className="font-medium tabular-nums">{value}</p>
     </div>
   )
 }
