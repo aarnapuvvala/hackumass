@@ -1,213 +1,296 @@
 [
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Big Y Supermarkets",
     "address": "175 University Dr, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Atkins Farms Country Market",
     "address": "1150 West St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Amherst Mobile Market Inc",
     "address": "990 N Pleasant St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
-    "name": "Amherst Survival Center",
-    "address": "138 Sunderland Rd, Amherst, MA 01002",
-    "snapEligible": true,
-    "category": "food_pantry"
-  },
-  {
-    "role": "store",
+    "category": "supermarket",
     "name": "Amherst Market",
     "address": "259 Triangle St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Mom's House Chinese Food Market",
     "address": "318 College St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Neighbor Food Mart",
     "address": "324 College St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Aster & Pine Market",
     "address": "189 N Pleasant St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Cumberland Farms",
     "address": "19 Montague Rd, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Cumberland Farms",
     "address": "35 Belchertown Rd, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Cushman Market and Cafe",
     "address": "491 Pine St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Simra LLC",
     "address": "259 Triangle St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Speedway",
     "address": "468 West St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "CVS Pharmacy",
     "address": "165 University Dr, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "CVS Pharmacy",
     "address": "76 N Pleasant St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Ancient Ponies Farm",
     "address": "712 Pratt Corner Rd, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Brookfield Farm",
     "address": "24 Hulst Rd, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Carrot Corner Farm",
     "address": "822 E Pleasant St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Old Friends Farm",
     "address": "593 S Pleasant St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Plum Brook Farm",
     "address": "416 Bay Rd, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Rivershed Farm",
     "address": "132 Pelham Rd, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Simple Gifts Farm",
     "address": "1089 N Pleasant St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Sunset Farm",
     "address": "20 Brigham Ln, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Wentworth Farm",
     "address": "173 Stanley St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "supermarket",
     "name": "Wild Shoat Farm",
     "address": "1555 S East St, Amherst, MA 01002",
     "snapEligible": true
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Johnny's Tavern",
     "address": "30 Boltwood Walk, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Pita Pockets",
     "address": "103 N Pleasant St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Lili's Restaurant",
     "address": "197 N Pleasant St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Miss Saigon",
     "address": "96 N Pleasant St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Pasta E Basta",
     "address": "26 Main St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Antonio's Pizza by the Slice",
     "address": "31 N Pleasant St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Crazy Noodles",
     "address": "36 Main St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Fresh Side",
     "address": "39 S Pleasant St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Amherst Oyster Bar",
     "address": "51 N Pleasant St, Amherst, MA 01002",
     "snapEligible": false
   },
   {
     "role": "store",
+    "category": "restaurant",
     "name": "Bueno Y Sano",
     "address": "1 Boltwood Walk, Amherst, MA 01002",
+    "snapEligible": false
+  }
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Amherst Survival Center",
+    "address": "138 Sunderland Rd, North Amherst, MA 01059",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Not Bread Alone",
+    "address": "165 Main St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "First Baptist Church Food Pantry",
+    "address": "434 N Pleasant St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "UMass Amherst Campus Pantry",
+    "address": "472 N Pleasant St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Wednesday Market at Bangs Community Center",
+    "address": "70 Boltwood Walk, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Amherst Survival Center Mobile Food Pantry",
+    "address": "156 Brittany Dr, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Craig's Doors Community Breakfast",
+    "address": "121 N Pleasant St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Bangs Community Center Brown Bag Program",
+    "address": "70 Boltwood Walk, Amherst, MA 01002",
     "snapEligible": false
   }
 ]
