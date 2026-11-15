@@ -9,6 +9,7 @@ export type MenuTableRow = {
   name: string
   price: number
   snap: string
+  snapEligible: boolean
 }
 
 export function StoreMenu({
@@ -59,6 +60,7 @@ export function StoreMenu({
                       detail: `${storeName} · ${row.category}`,
                       price: row.price,
                       pickup: storeAddress,
+                      snapEligible: row.snapEligible,
                     })
                   }
                 >

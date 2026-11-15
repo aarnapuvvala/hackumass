@@ -11,6 +11,7 @@ export type CartItem = {
   price: number
   quantity: number
   pickup: string
+  snapEligible: boolean
 }
 
 type CartContextValue = {
@@ -67,7 +68,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             return [...current, { ...next, quantity: 1 }]
           }
           return current.map((entry) =>
-            entry.id === next.id ? { ...entry, quantity: entry.quantity + 1 } : entry
+            entry.id === next.id
+              ? { ...entry, ...next, quantity: entry.quantity + 1 }
+              : entry
           )
         })
       },
@@ -127,6 +130,7 @@ function readStoredItem(value: unknown): CartItem | null {
     price,
     quantity: item.quantity,
     pickup: pickupAddress({ id: item.id, pickup }),
+    snapEligible: item.snapEligible === true,
   }
 }
 
