@@ -25,8 +25,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="flex items-center justify-between border-b border-border px-6 py-4">
-          <p className="text-sm font-medium">HackUMass</p>
+        <header className="glass sticky top-0 z-10 flex items-center justify-between px-6 py-4">
+          <p className="text-sm font-semibold text-primary">HackUMass</p>
           <Link href="/" className="text-sm font-medium underline-offset-4 hover:underline">
             Switch role
           </Link>

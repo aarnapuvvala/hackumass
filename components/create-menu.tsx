@@ -172,7 +172,7 @@ export function CreateMenu({
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-8 rounded-xl border border-border p-5">
+      <section className="surface subtle-shadow flex flex-col gap-8 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold">Create menu</h2>
@@ -406,7 +406,7 @@ function MenuView({
     : (sections[0]?.id ?? "")
 
   return (
-    <section id="menu-view" className="flex flex-col gap-6 rounded-xl border border-border p-5">
+    <section id="menu-view" className="surface subtle-shadow flex flex-col gap-6 p-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold">Menu</h2>
         <p className="text-sm text-muted-foreground">Jump to a section to see its items.</p>

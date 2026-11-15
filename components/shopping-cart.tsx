@@ -43,7 +43,7 @@ export function ShoppingCartButton({ groupBySnap = false }: { groupBySnap?: bool
       >
         <ShoppingCart />
         Cart
-        <span className="rounded-full bg-foreground px-2 py-0.5 text-xs text-background">
+        <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
           {count}
         </span>
       </Button>
@@ -177,7 +177,7 @@ function CartLine({
   removeItem: (id: string) => void
 }) {
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-border p-3">
+    <li className="surface flex flex-col gap-2 p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-medium">{item.name}</p>

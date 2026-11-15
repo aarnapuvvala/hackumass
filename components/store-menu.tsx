@@ -28,7 +28,7 @@ export function StoreMenu({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
+    <div className="surface subtle-shadow overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-border text-left">
@@ -51,7 +51,6 @@ export function StoreMenu({
               <td className="px-3 py-2 text-right">
                 <Button
                   type="button"
-                  variant="outline"
                   size="sm"
                   onClick={() =>
                     cart.addItem({

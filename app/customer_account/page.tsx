@@ -33,8 +33,8 @@ async function AccountHome() {
     <CartProvider>
       <div className="flex flex-col gap-8">
         {name ? (
-          <section className="rounded-2xl bg-foreground px-6 py-14 text-background">
-            <p className="text-sm tracking-wide text-background/70">Welcome</p>
+          <section className="rounded-2xl bg-primary px-6 py-14 text-primary-foreground subtle-shadow">
+            <p className="text-sm tracking-wide text-primary-foreground/70">Welcome</p>
             <h1 className="mt-3 text-5xl font-semibold tracking-tight">{name}</h1>
           </section>
         ) : (
