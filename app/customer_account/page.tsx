@@ -5,6 +5,7 @@ import { PageFrame } from "@/components/page-frame"
 import { ShoppingCartButton } from "@/components/shopping-cart"
 import { StoreDirectory } from "@/components/store-directory"
 import { findCustomerAccount } from "@/lib/accounts"
+import { loadPantryDetails } from "@/lib/pantry"
 import { loadStores } from "@/lib/stores"
 
 export default function CustomerAccountPage() {
@@ -29,6 +30,9 @@ async function AccountHome() {
   }
 
   const stores = await loadStores()
+  const pantries = await loadPantryDetails(
+    stores.filter((store) => store.category === "food_pantry").map((store) => store.name)
+  )
 
   return (
     <CartProvider>
@@ -61,7 +65,7 @@ async function AccountHome() {
           </div>
           <ShoppingCartButton groupBySnap />
         </div>
-        <StoreDirectory stores={stores} />
+        <StoreDirectory stores={stores} pantries={pantries} />
       </div>
     </CartProvider>
   )
