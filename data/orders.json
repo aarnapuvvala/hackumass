@@ -144,6 +144,38 @@
         "ebt": null
       },
       "createdAt": "2026-11-15T03:56:47.124Z"
+    },
+    {
+      "id": "904213fd-3fae-4eb6-8f41-5c3cb8dd30bc",
+      "address": "1234546587",
+      "pickups": [
+        "138 Sunderland Rd, Amherst, MA 01002"
+      ],
+      "customer": "guest",
+      "driver": null,
+      "items": [
+        {
+          "id": "pantry|138 Sunderland Rd, Amherst, MA 01002|Amherst Survival Center|meal",
+          "name": "Meal",
+          "detail": "Amherst Survival Center",
+          "price": 0,
+          "quantity": 1,
+          "pickup": "138 Sunderland Rd, Amherst, MA 01002",
+          "snapEligible": false
+        }
+      ],
+      "total": 0,
+      "payment": {
+        "checkoutId": "8e3b203d-9a1c-4643-b5fb-16f9ab8c3dc2",
+        "tip": 0,
+        "deliveryFee": 0,
+        "salesTax": 0,
+        "snapSubtotal": 0,
+        "otherSubtotal": 0,
+        "card": null,
+        "ebt": null
+      },
+      "createdAt": "2026-11-15T05:53:14.002Z"
     }
   ]
 }

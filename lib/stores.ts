@@ -21,22 +21,36 @@ async function readExampleStores(): Promise<StoreAccount[]> {
     if (!Array.isArray(parsed)) {
       return []
     }
-    return parsed.filter(isStore)
+    return parsed.flatMap((entry) => {
+      const store = readStore(entry)
+      return store ? [store] : []
+    })
   } catch {
     return []
   }
 }
 
-function isStore(value: unknown): value is StoreAccount {
+function readStore(value: unknown): StoreAccount | null {
   if (!value || typeof value !== "object") {
-    return false
+    return null
   }
   const store = value as Record<string, unknown>
-  return (
-    store.role === "store" &&
-    typeof store.name === "string" &&
-    typeof store.address === "string" &&
-    typeof store.snapEligible === "boolean" &&
-    (store.createdAt === undefined || typeof store.createdAt === "string")
-  )
+  if (
+    store.role !== "store" ||
+    typeof store.name !== "string" ||
+    typeof store.address !== "string" ||
+    typeof store.snapEligible !== "boolean" ||
+    (store.createdAt !== undefined && typeof store.createdAt !== "string")
+  ) {
+    return null
+  }
+  const category = typeof store.category === "string" ? store.category.trim() : ""
+  return {
+    role: "store",
+    name: store.name,
+    address: store.address,
+    snapEligible: store.snapEligible,
+    ...(typeof store.createdAt === "string" ? { createdAt: store.createdAt } : {}),
+    ...(category ? { category } : {}),
+  }
 }

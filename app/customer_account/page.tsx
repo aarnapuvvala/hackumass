@@ -51,7 +51,7 @@ async function AccountHome() {
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold">Stores</h2>
             <p className="text-sm text-muted-foreground">
-              A yellow icon means the store accepts SNAP.
+              A yellow circle means the store accepts SNAP. An orange circle means it is a food bank.
             </p>
           </div>
           <ShoppingCartButton groupBySnap />
