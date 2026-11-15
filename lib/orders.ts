@@ -1,13 +1,6 @@
-import { access, constants, mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
-import { get, put } from "@vercel/blob"
 import { pickupAddress } from "@/lib/pickup"
-
-const ordersPath = path.join(process.cwd(), "data", "orders.json")
-const runtimePath = path.join("/tmp", "hackumass-orders.json")
-const blobPath = "orders.json"
-
-let blobStore: boolean | null = null
+import { migrateJsonData } from "@/lib/json-migrate"
+import { mongoCollection, type StringIdDocument } from "@/lib/mongo"
 
 export type OrderItem = {
   id: string
@@ -55,90 +48,20 @@ export type Order = {
   createdAt: string
 }
 
-function parseOrders(raw: string) {
-  try {
-    const parsed = JSON.parse(raw) as { orders?: Order[] }
-    return Array.isArray(parsed.orders) ? parsed.orders.map(withPickups) : []
-  } catch {
-    return []
-  }
-}
-
-async function readFileOrders() {
-  if (!(await canWrite(ordersPath))) {
-    const runtime = await readFile(runtimePath, "utf8").catch(() => "")
-    if (runtime) {
-      return parseOrders(runtime)
-    }
-  }
-  const seeded = await readFile(ordersPath, "utf8").catch(() => "")
-  return seeded ? parseOrders(seeded) : []
-}
-
-async function readBlobOrders() {
-  const result = await get(blobPath, { access: "private", useCache: false })
-  if (!result || result.statusCode !== 200 || !result.stream) {
-    return null
-  }
-  return parseOrders(await new Response(result.stream).text())
-}
-
-async function useBlobStore() {
-  if (blobStore !== null) {
-    return blobStore
-  }
-  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID && !process.env.VERCEL) {
-    blobStore = false
-    return false
-  }
-  try {
-    await readBlobOrders()
-    blobStore = true
-  } catch {
-    blobStore = false
-  }
-  return blobStore
+async function ordersCollection() {
+  await migrateJsonData()
+  return mongoCollection<StringIdDocument>("orders")
 }
 
 async function readOrders() {
-  if (await useBlobStore()) {
-    const stored = await readBlobOrders()
-    if (stored) {
-      return stored
+  const docs = await (await ordersCollection()).find({}).sort({ createdAt: 1 }).toArray()
+  return docs.flatMap((doc) => {
+    if (!doc || typeof doc !== "object") {
+      return []
     }
-  }
-  return readFileOrders()
-}
-
-async function canWrite(filePath: string) {
-  try {
-    await access(path.dirname(filePath), constants.W_OK)
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function writeOrders(orders: Order[]) {
-  const payload = `${JSON.stringify({ orders }, null, 2)}\n`
-  if (await useBlobStore()) {
-    await put(blobPath, payload, {
-      access: "private",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: "application/json",
-      cacheControlMaxAge: 60,
-    })
-    return
-  }
-
-  if (await canWrite(ordersPath)) {
-    await mkdir(path.dirname(ordersPath), { recursive: true })
-    await writeFile(ordersPath, payload)
-    return
-  }
-
-  await writeFile(runtimePath, payload)
+    const { _id, ...order } = doc
+    return [withPickups(order as Order)]
+  })
 }
 
 export async function addOrder(input: {
@@ -147,7 +70,6 @@ export async function addOrder(input: {
   items: OrderItem[]
   payment: OrderPayment
 }) {
-  const orders = await readOrders()
   const order: Order = {
     id: crypto.randomUUID(),
     address: input.address,
@@ -159,8 +81,7 @@ export async function addOrder(input: {
     payment: input.payment,
     createdAt: new Date().toISOString(),
   }
-  orders.push(order)
-  await writeOrders(orders)
+  await (await ordersCollection()).insertOne({ ...order, _id: order.id })
   return order
 }
 
@@ -205,9 +126,8 @@ function normalizePayment(payment: Order["payment"] | undefined) {
 }
 
 export async function assignOrderToDriver(orderId: string, driver: string) {
-  const orders = await readOrders()
-  const next = orders.map((order) =>
-    order.id === orderId && order.driver === null ? { ...order, driver } : order
+  await (await ordersCollection()).updateOne(
+    { id: orderId, driver: null },
+    { $set: { driver } }
   )
-  await writeOrders(next)
 }

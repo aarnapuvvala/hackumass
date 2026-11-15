@@ -1,4 +1,4 @@
-import { MongoClient, type Collection } from "mongodb"
+import { MongoClient, type Collection, type Document } from "mongodb"
 
 export type PantryRecord = {
   name: string
@@ -27,7 +27,13 @@ export async function getMongoClient() {
   return globalForMongo.mongoClientPromise
 }
 
-export async function pantryCollection(): Promise<Collection<PantryRecord>> {
+export type StringIdDocument = { _id: string; [key: string]: any }
+
+export async function mongoCollection<T extends Document>(name: string): Promise<Collection<T>> {
   const client = await getMongoClient()
-  return client.db(databaseName).collection<PantryRecord>("pantries")
+  return client.db(databaseName).collection<T>(name)
+}
+
+export async function pantryCollection(): Promise<Collection<PantryRecord>> {
+  return mongoCollection<PantryRecord>("pantries")
 }

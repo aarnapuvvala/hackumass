@@ -1,9 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
 import { loadCatalogStores } from "@/lib/catalog"
+import { migrateJsonData } from "@/lib/json-migrate"
 import { isStoredMenuPhoto } from "@/lib/menu-photos"
-
-const menuPath = path.join(process.cwd(), "data", "menu.json")
+import { mongoCollection, type StringIdDocument } from "@/lib/mongo"
 
 export const snapStatuses = ["eligible", "not-eligible", "unsure"] as const
 
@@ -134,33 +132,29 @@ async function catalogSections(): Promise<MenuSection[]> {
 }
 
 async function readSavedMenu() {
-  try {
-    const raw = await readFile(menuPath, "utf8")
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object") {
-      return null
-    }
-    const record = parsed as { photoUrl?: unknown; sections?: unknown; source?: unknown }
-    return {
-      photoUrl: httpsUrl(record.photoUrl),
-      source: record.source === "saved" ? "saved" : "",
-      sections: Array.isArray(record.sections)
-        ? record.sections.flatMap((entry) => {
-            const section = readSection(entry)
-            return section ? [section] : []
-          })
-        : [],
-    }
-  } catch {
+  await migrateJsonData()
+  const record = await (await mongoCollection<StringIdDocument>("menu")).findOne({ _id: "current" })
+  if (!record) {
     return null
+  }
+  return {
+    photoUrl: httpsUrl(record.photoUrl),
+    source: record.source === "saved" ? "saved" : "",
+    sections: Array.isArray(record.sections)
+      ? record.sections.flatMap((entry) => {
+          const section = readSection(entry)
+          return section ? [section] : []
+        })
+      : [],
   }
 }
 
 async function writeMenu(menu: MenuData) {
-  await mkdir(path.dirname(menuPath), { recursive: true })
-  await writeFile(
-    menuPath,
-    `${JSON.stringify({ ...menu, source: "saved" }, null, 2)}\n`
+  await migrateJsonData()
+  await (await mongoCollection<StringIdDocument>("menu")).updateOne(
+    { _id: "current" },
+    { $set: { photoUrl: menu.photoUrl, sections: menu.sections, source: "saved" } },
+    { upsert: true }
   )
 }
 

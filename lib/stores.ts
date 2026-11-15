@@ -1,12 +1,10 @@
-import { readFile } from "node:fs/promises"
-import path from "node:path"
 import type { StoreAccount } from "@/lib/accounts"
 import { loadCatalogStores, publicStore } from "@/lib/catalog"
-
-const examplePath = path.join(process.cwd(), "data", "stores.example.json")
+import { migrateJsonData } from "@/lib/json-migrate"
+import { mongoCollection, type StringIdDocument } from "@/lib/mongo"
 
 export async function loadStores(): Promise<StoreAccount[]> {
-  const listed = await readExampleStores()
+  const listed = await readDirectoryStores()
   if (listed.length > 0) {
     return listed
   }
@@ -14,20 +12,13 @@ export async function loadStores(): Promise<StoreAccount[]> {
   return catalog.map(publicStore)
 }
 
-async function readExampleStores(): Promise<StoreAccount[]> {
-  try {
-    const raw = await readFile(examplePath, "utf8")
-    const parsed: unknown = JSON.parse(raw)
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-    return parsed.flatMap((entry) => {
-      const store = readStore(entry)
-      return store ? [store] : []
-    })
-  } catch {
-    return []
-  }
+async function readDirectoryStores(): Promise<StoreAccount[]> {
+  await migrateJsonData()
+  const docs = await (await mongoCollection<StringIdDocument>("stores")).find({}).toArray()
+  return docs.flatMap((entry) => {
+    const store = readStore(entry)
+    return store ? [store] : []
+  })
 }
 
 function readStore(value: unknown): StoreAccount | null {

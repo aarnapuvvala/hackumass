@@ -1,8 +1,6 @@
-import { readFile } from "node:fs/promises"
-import path from "node:path"
 import type { StoreAccount } from "@/lib/accounts"
-
-const catalogPath = path.join(process.cwd(), "data", "supermarket.json")
+import { migrateJsonData } from "@/lib/json-migrate"
+import { mongoCollection, type StringIdDocument } from "@/lib/mongo"
 
 export type CatalogItem = {
   name: string
@@ -22,23 +20,12 @@ export type CatalogStore = StoreAccount & {
 }
 
 export async function loadCatalogStores(): Promise<CatalogStore[]> {
-  try {
-    const raw = await readFile(catalogPath, "utf8")
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== "object" || !("stores" in parsed)) {
-      return []
-    }
-    const stores = (parsed as { stores?: unknown }).stores
-    if (!Array.isArray(stores)) {
-      return []
-    }
-    return stores.flatMap((entry) => {
-      const store = readCatalogStore(entry)
-      return store ? [store] : []
-    })
-  } catch {
-    return []
-  }
+  await migrateJsonData()
+  const docs = await (await mongoCollection<StringIdDocument>("catalogStores")).find({}).toArray()
+  return docs.flatMap((entry) => {
+    const store = readCatalogStore(entry)
+    return store ? [store] : []
+  })
 }
 
 export async function findCatalogStore(name: string) {
