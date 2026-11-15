@@ -118,7 +118,12 @@ export async function createOrder(
   const username = cookieStore.get("username")?.value?.trim()
   const customer =
     cookieStore.get("auth")?.value === "login" && username ? username : "guest"
-  await addOrder({ address, customer, items })
+  try {
+    await addOrder({ address, customer, items })
+  } catch (error) {
+    console.error(error)
+    return { ok: false, error: "The order could not be saved. Try again." }
+  }
   redirect("/customer_account")
 }
 

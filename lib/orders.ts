@@ -1,8 +1,13 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { access, constants, mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import { get, put } from "@vercel/blob"
 import { pickupAddress } from "@/lib/pickup"
 
 const ordersPath = path.join(process.cwd(), "data", "orders.json")
+const runtimePath = path.join("/tmp", "hackumass-orders.json")
+const blobPath = "orders.json"
+
+let blobStore: boolean | null = null
 
 export type OrderItem = {
   id: string
@@ -24,9 +29,8 @@ export type Order = {
   createdAt: string
 }
 
-async function readOrders() {
+function parseOrders(raw: string) {
   try {
-    const raw = await readFile(ordersPath, "utf8")
     const parsed = JSON.parse(raw) as { orders?: Order[] }
     return Array.isArray(parsed.orders) ? parsed.orders.map(withPickups) : []
   } catch {
@@ -34,9 +38,81 @@ async function readOrders() {
   }
 }
 
+async function readFileOrders() {
+  if (!(await canWrite(ordersPath))) {
+    const runtime = await readFile(runtimePath, "utf8").catch(() => "")
+    if (runtime) {
+      return parseOrders(runtime)
+    }
+  }
+  const seeded = await readFile(ordersPath, "utf8").catch(() => "")
+  return seeded ? parseOrders(seeded) : []
+}
+
+async function readBlobOrders() {
+  const result = await get(blobPath, { access: "private", useCache: false })
+  if (!result || result.statusCode !== 200 || !result.stream) {
+    return null
+  }
+  return parseOrders(await new Response(result.stream).text())
+}
+
+async function useBlobStore() {
+  if (blobStore !== null) {
+    return blobStore
+  }
+  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID && !process.env.VERCEL) {
+    blobStore = false
+    return false
+  }
+  try {
+    await readBlobOrders()
+    blobStore = true
+  } catch {
+    blobStore = false
+  }
+  return blobStore
+}
+
+async function readOrders() {
+  if (await useBlobStore()) {
+    const stored = await readBlobOrders()
+    if (stored) {
+      return stored
+    }
+  }
+  return readFileOrders()
+}
+
+async function canWrite(filePath: string) {
+  try {
+    await access(path.dirname(filePath), constants.W_OK)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function writeOrders(orders: Order[]) {
-  await mkdir(path.dirname(ordersPath), { recursive: true })
-  await writeFile(ordersPath, `${JSON.stringify({ orders }, null, 2)}\n`)
+  const payload = `${JSON.stringify({ orders }, null, 2)}\n`
+  if (await useBlobStore()) {
+    await put(blobPath, payload, {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: "application/json",
+      cacheControlMaxAge: 60,
+    })
+    return
+  }
+
+  if (await canWrite(ordersPath)) {
+    await mkdir(path.dirname(ordersPath), { recursive: true })
+    await writeFile(ordersPath, payload)
+    return
+  }
+
+  await writeFile(runtimePath, payload)
 }
 
 export async function addOrder(input: {
