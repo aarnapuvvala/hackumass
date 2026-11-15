@@ -21,15 +21,27 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image must be under 4 MB." }, { status: 400 })
   }
 
+  if (purpose === "menu" && file.type !== "image/jpeg" && file.type !== "image/jpg" && file.type !== "image/png") {
+    return Response.json(
+      { error: "Use a JPG or PNG photo so the menu can be read." },
+      { status: 400 }
+    )
+  }
+
   if (purpose === "license" || purpose === "menu") {
     const filename = purpose === "menu" ? menuPhotoFilename(file) : licenseFilename(file)
     if (!filename) {
       return Response.json({ error: "Use a JPG, PNG, GIF, or WebP image." }, { status: 400 })
     }
-    const bytes = Buffer.from(await file.arrayBuffer())
-    const url =
-      purpose === "menu" ? await saveMenuPhotoFile(filename, bytes) : await saveLicense(filename, bytes)
-    return Response.json({ url })
+    try {
+      const bytes = Buffer.from(await file.arrayBuffer())
+      const url =
+        purpose === "menu" ? await saveMenuPhotoFile(filename, bytes) : await saveLicense(filename, bytes)
+      return Response.json({ url })
+    } catch (error) {
+      console.error("Upload failed", error instanceof Error ? error.message : "unknown error")
+      return Response.json({ error: "Could not store that photo." }, { status: 500 })
+    }
   }
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {

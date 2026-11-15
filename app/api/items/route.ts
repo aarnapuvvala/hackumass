@@ -1,6 +1,11 @@
+import { cookies } from "next/headers"
 import { connection } from "next/server"
+import { findStoreAccount } from "@/lib/accounts"
+import { menuFromPhoto } from "@/lib/menu-from-image"
 import { isStoredMenuPhoto } from "@/lib/menu-photos"
-import { loadMenu, saveMenuPhoto } from "@/lib/menu"
+import { loadMenu, saveMenuPhoto, saveMenuSections } from "@/lib/menu"
+
+export const maxDuration = 120
 
 export async function GET() {
   await connection()
@@ -26,7 +31,31 @@ export async function POST(request: Request) {
   }
 
   const saved = await saveMenuPhoto(photoUrl)
-  return Response.json({ photoUrl: saved })
+
+  const cookieStore = await cookies()
+  const username = cookieStore.get("username")?.value?.trim() ?? ""
+  const store = username ? await findStoreAccount(username) : null
+  if (!store) {
+    return Response.json({
+      photoUrl: saved,
+      error: "Log in with your store name before creating a menu from the photo.",
+    })
+  }
+
+  try {
+    const sections = await menuFromPhoto(saved)
+    if (sections.length === 0) {
+      return Response.json({
+        photoUrl: saved,
+        error: "No menu items could be read from that photo.",
+      })
+    }
+    const savedSections = await saveMenuSections(sections, store.name)
+    return Response.json({ photoUrl: saved, sections: savedSections })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not read the menu from that photo."
+    return Response.json({ photoUrl: saved, error: message })
+  }
 }
 
 function isHttpsUrl(value: string) {
