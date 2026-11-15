@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { checkoutFrameSource, ebtFrameSource } from "@/lib/checkout"
 import { Button } from "@/components/ui/button"
 
-const fieldClassName =
-  "h-10 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+const fieldClassName = "field"
 
 export default function EbtSecurePage() {
   const [pan, setPan] = useState("")
@@ -172,35 +171,38 @@ export default function EbtSecurePage() {
       <label className="flex flex-col gap-1 text-sm font-medium">
         EBT card number
         <input
+          name="ebt-pan"
           value={pan}
           onChange={(event) => setPan(event.target.value)}
           inputMode="numeric"
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="16–19 digits"
-          aria-label="EBT card number"
+          placeholder="16–19 digits…"
           className={fieldClassName}
         />
       </label>
       <label className="flex flex-col gap-1 text-sm font-medium">
         PIN
         <input
+          name="ebt-pin"
           value={pin}
           onChange={(event) => setPin(event.target.value)}
           type="password"
           inputMode="numeric"
           autoComplete="off"
+          spellCheck={false}
           maxLength={4}
-          placeholder="4 digits"
-          aria-label="EBT PIN"
+          placeholder="4 digits…"
           className={fieldClassName}
         />
       </label>
-      <Button type="submit" className="h-10" disabled={busy}>
-        {busy ? "Contacting EBT…" : "Check balance"}
+      <Button type="submit" className="h-11" disabled={busy}>
+        {busy ? "Contacting EBT…" : "Check Balance"}
       </Button>
-      <p className="text-xs text-muted-foreground">{status}</p>
+      <p className="text-xs text-muted-foreground" aria-live="polite">
+        {status}
+      </p>
     </form>
   )
 }

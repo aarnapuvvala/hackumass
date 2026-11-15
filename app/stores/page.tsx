@@ -1,28 +1,26 @@
 import { Suspense } from "react"
 import { connection } from "next/server"
 import { CartProvider } from "@/components/cart-provider"
+import { PageFrame, PageIntro } from "@/components/page-frame"
 import { ShoppingCartButton } from "@/components/shopping-cart"
+import { loadPantryDetails } from "@/lib/pantry"
 import { loadStores } from "@/lib/stores"
 import { StoreDirectory } from "@/components/store-directory"
 
 export default function StoresPage() {
   return (
     <CartProvider>
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-6 py-12">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Stores</h1>
-          <p className="text-muted-foreground">
-            Stores with an account, closest to you first. A yellow circle means the
-            store accepts SNAP. An orange circle means it is a food bank.
-          </p>
-        </div>
-        <ShoppingCartButton groupBySnap />
-      </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading stores…</p>}>
-        <StoreAccounts />
-      </Suspense>
-      </main>
+      <PageFrame width="md">
+        <PageIntro
+          kicker="Shop"
+          title="Stores"
+          description="Stores with an account appear closest to you first. SNAP marks stores that accept benefits. Food Bank marks free meals."
+          actions={<ShoppingCartButton groupBySnap />}
+        />
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading stores…</p>}>
+          <StoreAccounts />
+        </Suspense>
+      </PageFrame>
     </CartProvider>
   )
 }
@@ -30,5 +28,8 @@ export default function StoresPage() {
 async function StoreAccounts() {
   await connection()
   const stores = await loadStores()
-  return <StoreDirectory stores={stores} />
+  const pantries = await loadPantryDetails(
+    stores.filter((store) => store.category === "food_pantry").map((store) => store.name)
+  )
+  return <StoreDirectory stores={stores} pantries={pantries} />
 }

@@ -1,10 +1,7 @@
 import { createHmac, randomUUID } from "node:crypto"
-import { access, constants, mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
 import { EBT_STARTING_BALANCE_CENTS } from "@/lib/checkout"
-
-const ledgerPath = path.join(process.cwd(), "data", "ebt-ledger.json")
-const runtimePath = path.join("/tmp", "hackumass-ebt-ledger.json")
+import { migrateJsonData } from "@/lib/json-migrate"
+import { mongoCollection } from "@/lib/mongo"
 
 type ChargeRecord = {
   id: string
@@ -15,15 +12,6 @@ type ChargeRecord = {
   remainingBalanceCents: number
   voided: boolean
   consumed: boolean
-}
-
-type Ledger = {
-  balances: Record<string, number>
-  charges: Record<string, ChargeRecord>
-}
-
-function emptyLedger(): Ledger {
-  return { balances: {}, charges: {} }
 }
 
 function cardToken(pan: string) {
@@ -53,64 +41,34 @@ export function readPin(value: unknown) {
   return digits
 }
 
-async function canWrite(filePath: string) {
-  try {
-    await access(path.dirname(filePath), constants.W_OK)
-    return true
-  } catch {
-    return false
-  }
+async function balances() {
+  await migrateJsonData()
+  return mongoCollection<{ _id: string; cents: number }>("ebtBalances")
 }
 
-async function readLedger() {
-  const primary = (await canWrite(ledgerPath)) ? ledgerPath : runtimePath
-  const raw = await readFile(primary, "utf8").catch(() => "")
-  if (!raw) {
-    const seeded = primary === ledgerPath ? "" : await readFile(ledgerPath, "utf8").catch(() => "")
-    return seeded ? parseLedger(seeded) : emptyLedger()
-  }
-  return parseLedger(raw)
+async function charges() {
+  await migrateJsonData()
+  return mongoCollection<ChargeRecord & { _id: string }>("ebtCharges")
 }
 
-function parseLedger(raw: string): Ledger {
-  try {
-    const parsed = JSON.parse(raw) as Partial<Ledger>
-    return {
-      balances: parsed.balances && typeof parsed.balances === "object" ? parsed.balances : {},
-      charges: parsed.charges && typeof parsed.charges === "object" ? parsed.charges : {},
-    }
-  } catch {
-    return emptyLedger()
-  }
-}
-
-async function writeLedger(ledger: Ledger) {
-  const payload = `${JSON.stringify(ledger)}\n`
-  if (await canWrite(ledgerPath)) {
-    await mkdir(path.dirname(ledgerPath), { recursive: true })
-    await writeFile(ledgerPath, payload)
-    return
-  }
-  await writeFile(runtimePath, payload)
-}
-
-function balanceFor(ledger: Ledger, token: string) {
-  const stored = ledger.balances[token]
-  if (typeof stored === "number" && Number.isInteger(stored) && stored >= 0) {
-    return stored
-  }
-  ledger.balances[token] = EBT_STARTING_BALANCE_CENTS
-  return EBT_STARTING_BALANCE_CENTS
+async function ensureBalance(token: string) {
+  const collection = await balances()
+  await collection.updateOne(
+    { _id: token },
+    { $setOnInsert: { cents: EBT_STARTING_BALANCE_CENTS } },
+    { upsert: true }
+  )
+  const record = await collection.findOne({ _id: token })
+  return typeof record?.cents === "number" && record.cents >= 0
+    ? record.cents
+    : EBT_STARTING_BALANCE_CENTS
 }
 
 export async function checkEbtBalance(pan: string, pin: string) {
   if (!readPin(pin) || !readPan(pan)) {
     return { ok: false as const, error: "Enter an EBT card number and a 4-digit PIN." }
   }
-  const ledger = await readLedger()
-  const token = cardToken(pan)
-  const balanceCents = balanceFor(ledger, token)
-  await writeLedger(ledger)
+  const balanceCents = await ensureBalance(cardToken(pan))
   return {
     ok: true as const,
     last4: pan.slice(-4),
@@ -131,18 +89,23 @@ export async function chargeEbt(input: {
     return { ok: false as const, error: "Enter how much to pay with EBT." }
   }
 
-  const ledger = await readLedger()
   const token = cardToken(input.pan)
-  const balanceCents = balanceFor(ledger, token)
-  if (input.amountCents > balanceCents) {
+  await ensureBalance(token)
+  const collection = await balances()
+  const updated = await collection.findOneAndUpdate(
+    { _id: token, cents: { $gte: input.amountCents } },
+    { $inc: { cents: -input.amountCents } },
+    { returnDocument: "after" }
+  )
+  if (!updated) {
+    const current = await ensureBalance(token)
     return {
       ok: false as const,
-      error: `The EBT balance is too low for that amount. Remaining balance ${formatLedgerMoney(balanceCents)}.`,
+      error: `The EBT balance is too low for that amount. Remaining balance ${formatLedgerMoney(current)}.`,
     }
   }
 
-  const remainingBalanceCents = balanceCents - input.amountCents
-  ledger.balances[token] = remainingBalanceCents
+  const remainingBalanceCents = updated.cents
   const charge: ChargeRecord = {
     id: randomUUID(),
     token,
@@ -153,8 +116,12 @@ export async function chargeEbt(input: {
     voided: false,
     consumed: false,
   }
-  ledger.charges[charge.id] = charge
-  await writeLedger(ledger)
+  try {
+    await (await charges()).insertOne({ ...charge, _id: charge.id })
+  } catch (error) {
+    await collection.updateOne({ _id: token }, { $inc: { cents: input.amountCents } })
+    throw error
+  }
   return {
     ok: true as const,
     chargeId: charge.id,
@@ -165,34 +132,32 @@ export async function chargeEbt(input: {
 }
 
 export async function getEbtCharge(chargeId: string) {
-  const ledger = await readLedger()
-  return ledger.charges[chargeId] ?? null
+  const charge = await (await charges()).findOne({ _id: chargeId })
+  if (!charge) {
+    return null
+  }
+  const { _id, ...record } = charge
+  return record
 }
 
 export async function consumeEbtCharge(chargeId: string) {
-  const ledger = await readLedger()
-  const charge = ledger.charges[chargeId]
-  if (!charge || charge.voided) {
-    return false
-  }
-  charge.consumed = true
-  ledger.charges[chargeId] = charge
-  await writeLedger(ledger)
-  return true
+  const result = await (await charges()).updateOne(
+    { _id: chargeId, voided: { $ne: true } },
+    { $set: { consumed: true } }
+  )
+  return result.matchedCount === 1
 }
 
 export async function reverseEbtCharge(chargeId: string) {
-  const ledger = await readLedger()
-  const charge = ledger.charges[chargeId]
-  if (!charge || charge.voided) {
+  const charge = await (await charges()).findOneAndUpdate(
+    { _id: chargeId, voided: { $ne: true } },
+    { $set: { voided: true, consumed: true } },
+    { returnDocument: "before" }
+  )
+  if (!charge) {
     return
   }
-  const current = balanceFor(ledger, charge.token)
-  ledger.balances[charge.token] = current + charge.amountCents
-  charge.voided = true
-  charge.consumed = true
-  ledger.charges[chargeId] = charge
-  await writeLedger(ledger)
+  await (await balances()).updateOne({ _id: charge.token }, { $inc: { cents: charge.amountCents } })
 }
 
 function formatLedgerMoney(cents: number) {

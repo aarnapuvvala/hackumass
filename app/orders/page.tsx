@@ -1,12 +1,13 @@
 import { CartProvider } from "@/components/cart-provider"
 import { CreateOrderForm } from "@/components/create-order-form"
+import { PageFrame } from "@/components/page-frame"
 
 export default function OrdersPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-6 py-12">
+    <PageFrame>
       <CartProvider>
         <CreateOrderForm />
       </CartProvider>
-    </main>
+    </PageFrame>
   )
 }

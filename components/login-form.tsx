@@ -21,7 +21,9 @@ export function LoginForm({
           type="text"
           required
           autoComplete="username"
-          className="h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          autoCapitalize="none"
+          spellCheck={false}
+          className="field"
         />
       </label>
       <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -31,10 +33,10 @@ export function LoginForm({
           type="password"
           required
           autoComplete="current-password"
-          className="h-10 rounded-lg border border-input bg-background px-3 text-base font-normal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="field"
         />
       </label>
-      <Button type="submit" size="lg" className="h-10">
+      <Button type="submit" size="lg" className="h-11">
         {submitLabel}
       </Button>
     </form>

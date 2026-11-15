@@ -3,17 +3,18 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { connection } from "next/server"
 import { assignOrder } from "@/app/actions"
+import { PageFrame } from "@/components/page-frame"
 import { Button } from "@/components/ui/button"
 import { listDriverOrders } from "@/lib/orders"
 import { formatMoney } from "@/lib/utils"
 
 export default function DriverAccountPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-6 py-12">
+    <PageFrame width="md">
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading deliveries…</p>}>
         <DriverAccount />
       </Suspense>
-    </main>
+    </PageFrame>
   )
 }
 
@@ -32,13 +33,17 @@ async function DriverAccount() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="rounded-2xl bg-primary px-6 py-14 text-primary-foreground subtle-shadow">
-        <p className="text-sm tracking-wide text-primary-foreground/70">Welcome</p>
-        <h1 className="mt-3 text-5xl font-semibold tracking-tight">{username}</h1>
+      <section className="surface subtle-shadow overflow-hidden">
+        <div className="bg-primary px-6 py-10 text-primary-foreground">
+          <p className="text-sm text-primary-foreground/80">Welcome</p>
+          <h1 translate="no" className="mt-2 break-words text-4xl font-semibold tracking-tight">
+            {username}
+          </h1>
+        </div>
       </section>
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Deliveries</h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-pretty text-sm text-muted-foreground">
           Assign yourself to an open order.
         </p>
       </div>
@@ -65,9 +70,9 @@ async function DriverAccount() {
                   <p className="text-sm text-muted-foreground">Ending point</p>
                   <p className="font-medium">{order.address}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-pretty break-words text-muted-foreground">
                   {order.items.map((item) => `${item.quantity} ${item.name}`).join(", ")} ·{" "}
-                  {formatMoney(order.total)}
+                  <span className="tabular-nums">{formatMoney(order.total)}</span>
                 </p>
               </div>
               {order.driver === username ? (
@@ -75,8 +80,8 @@ async function DriverAccount() {
               ) : (
                 <form action={assignOrder}>
                   <input type="hidden" name="orderId" value={order.id} />
-                  <Button type="submit" size="lg" className="h-10 w-full">
-                    Assign
+                  <Button type="submit" size="lg" className="h-11 w-full">
+                    Assign to Me
                   </Button>
                 </form>
               )}

@@ -44,3 +44,4 @@ next-env.d.ts
 /data/accounts.json
 /data/stores.json
 /data/ebt-ledger.json
+/data/pantry-cache.json

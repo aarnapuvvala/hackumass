@@ -1,8 +1,6 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
 import { findCatalogStore, publicStore } from "@/lib/catalog"
-
-const accountsPath = path.join(process.cwd(), "data", "accounts.json")
+import { migrateJsonData } from "@/lib/json-migrate"
+import { mongoCollection, type StringIdDocument } from "@/lib/mongo"
 
 export type CustomerAccount = {
   role: "customer"
@@ -35,13 +33,12 @@ export type StoreAccount = {
 export type Account = CustomerAccount | DriverAccount | StoreAccount
 
 async function readAccounts() {
-  try {
-    const raw = await readFile(accountsPath, "utf8")
-    const parsed = JSON.parse(raw) as { accounts?: Account[] }
-    return Array.isArray(parsed.accounts) ? parsed.accounts : []
-  } catch {
-    return []
-  }
+  await migrateJsonData()
+  const docs = await (await mongoCollection<StringIdDocument>("accounts")).find({}).toArray()
+  return docs.flatMap((doc) => {
+    const { _id, ...account } = doc
+    return isAccount(account) ? [account] : []
+  })
 }
 
 export async function listStoreAccounts() {
@@ -93,8 +90,22 @@ export async function findCustomerAccount(username: string) {
 }
 
 export async function addAccount(account: Account) {
-  await mkdir(path.dirname(accountsPath), { recursive: true })
-  const accounts = await readAccounts()
-  accounts.push(account)
-  await writeFile(accountsPath, `${JSON.stringify({ accounts }, null, 2)}\n`)
+  await migrateJsonData()
+  const key =
+    account.role === "store"
+      ? `store:${account.name}:${account.createdAt ?? ""}`
+      : `${account.role}:${account.username}:${account.createdAt}`
+  await (await mongoCollection<StringIdDocument>("accounts")).updateOne(
+    { _id: key },
+    { $setOnInsert: account },
+    { upsert: true }
+  )
+}
+
+function isAccount(value: unknown): value is Account {
+  if (!value || typeof value !== "object") {
+    return false
+  }
+  const account = value as { role?: unknown }
+  return account.role === "customer" || account.role === "driver" || account.role === "store"
 }
