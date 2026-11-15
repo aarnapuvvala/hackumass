@@ -237,4 +237,60 @@
     "address": "1 Boltwood Walk, Amherst, MA 01002",
     "snapEligible": false
   }
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Amherst Survival Center",
+    "address": "138 Sunderland Rd, North Amherst, MA 01059",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Not Bread Alone",
+    "address": "165 Main St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "First Baptist Church Food Pantry",
+    "address": "434 N Pleasant St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "UMass Amherst Campus Pantry",
+    "address": "472 N Pleasant St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Wednesday Market at Bangs Community Center",
+    "address": "70 Boltwood Walk, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Amherst Survival Center Mobile Food Pantry",
+    "address": "156 Brittany Dr, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Craig's Doors Community Breakfast",
+    "address": "121 N Pleasant St, Amherst, MA 01002",
+    "snapEligible": false
+  },
+  {
+    "role": "store",
+    "category": "food_pantry",
+    "name": "Bangs Community Center Brown Bag Program",
+    "address": "70 Boltwood Walk, Amherst, MA 01002",
+    "snapEligible": false
+  }
 ]
