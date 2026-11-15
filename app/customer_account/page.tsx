@@ -35,7 +35,7 @@ async function AccountHome() {
   )
 
   return (
-    <CartProvider>
+    <CartProvider accountId={name ?? "guest"}>
       <div className="flex flex-col gap-8">
         {name ? (
           <section className="surface subtle-shadow overflow-hidden">

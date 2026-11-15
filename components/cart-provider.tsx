@@ -25,71 +25,119 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null)
 export const cartStorageKey = "customer-cart"
-const storageKey = cartStorageKey
+const guestAccountId = "guest"
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([])
-  const [ready, setReady] = useState(false)
+export function cartStorageKeyFor(accountId: string) {
+  return `${cartStorageKey}:${encodeURIComponent(accountId)}`
+}
+
+let guestVisitItems: CartItem[] | null = null
+let guestLeaveTimer: number | undefined
+
+function isGuestAccount(accountId: string) {
+  return accountId === guestAccountId
+}
+
+type StoredCart = {
+  key: string
+  items: CartItem[]
+  ready: boolean
+}
+
+export function CartProvider({
+  accountId,
+  children,
+}: {
+  accountId: string
+  children: React.ReactNode
+}) {
+  const storageKey = cartStorageKeyFor(accountId)
+  const [cart, setCart] = useState<StoredCart>({ key: "", items: [], ready: false })
+  const items = cart.key === storageKey ? cart.items : []
+  const ready = cart.ready && cart.key === storageKey
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(storageKey)
-      if (raw) {
-        const parsed: unknown = JSON.parse(raw)
-        if (Array.isArray(parsed)) {
-          setItems(parsed.flatMap((entry) => {
-            const item = readStoredItem(entry)
-            return item ? [item] : []
-          }))
-        }
+    if (isGuestAccount(accountId)) {
+      window.clearTimeout(guestLeaveTimer)
+      window.localStorage.removeItem(storageKey)
+      const items = guestVisitItems ?? []
+      guestVisitItems = items
+      setCart({ key: storageKey, items, ready: true })
+      return () => {
+        guestLeaveTimer = window.setTimeout(() => {
+          guestVisitItems = null
+        }, 0)
       }
-    } catch {
-      setItems([])
     }
-    setReady(true)
-  }, [])
+    setCart({ key: storageKey, items: readCart(storageKey), ready: true })
+  }, [accountId, storageKey])
 
   useEffect(() => {
     if (!ready) {
       return
     }
+    if (isGuestAccount(accountId)) {
+      guestVisitItems = items
+      window.localStorage.removeItem(storageKey)
+      return
+    }
     window.localStorage.setItem(storageKey, JSON.stringify(items))
-  }, [items, ready])
+  }, [accountId, items, ready, storageKey])
 
   const value = useMemo<CartContextValue>(
     () => ({
       items,
       ready,
       addItem(item) {
-        setItems((current) => {
+        setCart((current) => {
+          const currentItems = current.key === storageKey ? current.items : []
           const next = { ...item, pickup: pickupAddress(item) }
-          const existing = current.find((entry) => entry.id === next.id)
-          if (!existing) {
-            return [...current, { ...next, quantity: 1 }]
-          }
-          return current.map((entry) =>
-            entry.id === next.id
-              ? { ...entry, ...next, quantity: entry.quantity + 1 }
-              : entry
-          )
+          const existing = currentItems.find((entry) => entry.id === next.id)
+          const nextItems = !existing
+            ? [...currentItems, { ...next, quantity: 1 }]
+            : currentItems.map((entry) =>
+                entry.id === next.id
+                  ? { ...entry, ...next, quantity: entry.quantity + 1 }
+                  : entry
+              )
+          return { key: storageKey, items: nextItems, ready: true }
         })
       },
       removeItem(id) {
-        setItems((current) => current.filter((entry) => entry.id !== id))
+        setCart((current) => ({
+          key: storageKey,
+          items: (current.key === storageKey ? current.items : []).filter((entry) => entry.id !== id),
+          ready: true,
+        }))
       },
       setQuantity(id, quantity) {
-        setItems((current) =>
-          quantity < 1
-            ? current.filter((entry) => entry.id !== id)
-            : current.map((entry) => (entry.id === id ? { ...entry, quantity } : entry))
-        )
+        setCart((current) => {
+          const currentItems = current.key === storageKey ? current.items : []
+          return {
+            key: storageKey,
+            items:
+              quantity < 1
+                ? currentItems.filter((entry) => entry.id !== id)
+                : currentItems.map((entry) => (entry.id === id ? { ...entry, quantity } : entry)),
+            ready: true,
+          }
+        })
       },
       clear() {
-        window.localStorage.setItem(storageKey, "[]")
-        setItems((current) => (current.length === 0 ? current : []))
+        if (isGuestAccount(accountId)) {
+          guestVisitItems = []
+          window.localStorage.removeItem(storageKey)
+        } else {
+          window.localStorage.setItem(storageKey, "[]")
+        }
+        setCart((current) =>
+          current.key === storageKey && current.items.length === 0
+            ? current
+            : { key: storageKey, items: [], ready: true }
+        )
       },
     }),
-    [items, ready]
+    [accountId, items, ready, storageKey]
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
@@ -105,6 +153,25 @@ export function useCart() {
 
 export function useOptionalCart() {
   return useContext(CartContext)
+}
+
+function readCart(storageKey: string) {
+  try {
+    const raw = window.localStorage.getItem(storageKey)
+    if (!raw) {
+      return []
+    }
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed.flatMap((entry) => {
+      const item = readStoredItem(entry)
+      return item ? [item] : []
+    })
+  } catch {
+    return []
+  }
 }
 
 function readStoredItem(value: unknown): CartItem | null {
