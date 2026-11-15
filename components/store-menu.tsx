@@ -58,6 +58,7 @@ export function StoreMenu({
                       name: row.name,
                       detail: `${storeName} · ${row.category}`,
                       price: row.price,
+                      pickup: storeAddress,
                     })
                   }
                 >

@@ -7,7 +7,7 @@ export function LoginForm({
 }: {
   action: (formData: FormData) => void | Promise<void>
   submitLabel: string
-  redirectTo?: "/account-store" | "/customer_account"
+  redirectTo?: "/account-store" | "/customer_account" | "/driver_account"
 }) {
   const usernameLabel = redirectTo === "/account-store" ? "Store name" : "Username"
 

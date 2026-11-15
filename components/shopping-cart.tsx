@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useId, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { ShoppingCart } from "lucide-react"
 import { formatMoney, useCart } from "@/components/cart-provider"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ export function ShoppingCartButton() {
   const { items, removeItem, setQuantity } = useCart()
   const [open, setOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const router = useRouter()
   const titleId = useId()
   const count = items.reduce((total, item) => total + item.quantity, 0)
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -119,6 +121,21 @@ export function ShoppingCartButton() {
             <p className="font-medium">Total</p>
             <p className="text-lg font-semibold">{formatMoney(total)}</p>
           </div>
+          <Button
+            type="button"
+            size="lg"
+            className="h-10 w-full"
+            disabled={items.length === 0}
+            onClick={() => {
+              const dialog = dialogRef.current
+              if (dialog?.open) {
+                dialog.close()
+              }
+              router.push("/orders")
+            }}
+          >
+            Create order
+          </Button>
         </div>
       </dialog>
     </>

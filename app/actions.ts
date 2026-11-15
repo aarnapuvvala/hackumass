@@ -4,6 +4,9 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { addAccount, authenticateStore, findCustomerAccount, type Account } from "@/lib/accounts"
 import { geocodeAddress, milesBetween } from "@/lib/geo"
+import { isStoredLicense } from "@/lib/licenses"
+import { pickupAddress } from "@/lib/pickup"
+import { addOrder, assignOrderToDriver, type OrderItem } from "@/lib/orders"
 
 const ROLES = ["customer", "driver", "store"] as const
 
@@ -56,7 +59,9 @@ export async function login(formData: FormData) {
 
   const cookieStore = await cookies()
   const redirectTo = String(formData.get("redirectTo") ?? "")
-  if (redirectTo === "/account-store" || cookieStore.get("role")?.value === "store") {
+  const role = cookieStore.get("role")?.value
+
+  if (redirectTo === "/account-store" || (redirectTo === "" && role === "store")) {
     const store = await authenticateStore(username, password)
     if (!store) {
       return
@@ -74,13 +79,69 @@ export async function login(formData: FormData) {
   cookieStore.set("username", signedInName, cookieOptions)
   cookieStore.set("password", password, cookieOptions)
   cookieStore.set("auth", "login", cookieOptions)
+  if (redirectTo === "/driver_account") {
+    cookieStore.set("role", "driver", cookieOptions)
+    redirect("/driver_account")
+  }
   if (redirectTo === "/customer_account") {
     cookieStore.set("role", "customer", cookieOptions)
     redirect("/customer_account")
   }
-  if (cookieStore.get("role")?.value === "customer") {
-    redirect("/customer_account")
+  if (role === "driver") {
+    cookieStore.set("role", "driver", cookieOptions)
+    redirect("/driver_account")
   }
+  cookieStore.set("role", "customer", cookieOptions)
+  redirect("/customer_account")
+}
+
+export type CreateOrderState = {
+  ok: boolean
+  error?: string
+  address?: string
+} | null
+
+export async function createOrder(
+  _previous: CreateOrderState,
+  formData: FormData
+): Promise<CreateOrderState> {
+  const address = text(formData, "address")
+  const items = parseOrderItems(formData.get("items"))
+  if (!address) {
+    return { ok: false, error: "Enter a delivery address." }
+  }
+  if (items.length === 0) {
+    return { ok: false, error: "Your cart is empty." }
+  }
+
+  const cookieStore = await cookies()
+  const username = cookieStore.get("username")?.value?.trim()
+  const customer =
+    cookieStore.get("auth")?.value === "login" && username ? username : "guest"
+  try {
+    await addOrder({ address, customer, items })
+  } catch (error) {
+    console.error(error)
+    return { ok: false, error: "The order could not be saved. Try again." }
+  }
+  redirect("/customer_account")
+}
+
+export async function assignOrder(formData: FormData) {
+  const orderId = text(formData, "orderId")
+  const cookieStore = await cookies()
+  const username = cookieStore.get("username")?.value?.trim()
+  if (
+    !orderId ||
+    cookieStore.get("auth")?.value !== "login" ||
+    cookieStore.get("role")?.value !== "driver" ||
+    !username
+  ) {
+    redirect("/driver")
+  }
+
+  await assignOrderToDriver(orderId, username)
+  redirect("/driver_account")
 }
 
 export type CreateAccountState = {
@@ -121,7 +182,7 @@ export async function createAccount(
     if (!username || !password || !licensePlate || !carModel || !carColor) {
       return { ok: false, error: "Fill in every driver field." }
     }
-    if (!isHttpsUrl(photoUrl)) {
+    if (!isHttpsUrl(photoUrl) && !isStoredLicense(photoUrl)) {
       return { ok: false, error: "Upload a driver's license photo first." }
     }
     account = {
@@ -188,6 +249,53 @@ export async function storeDistances(
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim()
+}
+
+function parseOrderItems(value: FormDataEntryValue | null): OrderItem[] {
+  if (typeof value !== "string" || !value) {
+    return []
+  }
+  try {
+    const parsed: unknown = JSON.parse(value)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed.flatMap((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return []
+      }
+      const item = entry as Record<string, unknown>
+      const quantity = item.quantity
+      const price = item.price
+      if (
+        typeof item.id !== "string" ||
+        typeof item.name !== "string" ||
+        typeof item.detail !== "string" ||
+        typeof quantity !== "number" ||
+        !Number.isInteger(quantity) ||
+        quantity < 1 ||
+        quantity > 99 ||
+        typeof price !== "number" ||
+        !Number.isFinite(price) ||
+        price < 0
+      ) {
+        return []
+      }
+      const pickup = typeof item.pickup === "string" ? item.pickup : ""
+      return [
+        {
+          id: item.id,
+          name: item.name,
+          detail: item.detail,
+          price,
+          quantity,
+          pickup: pickupAddress({ id: item.id, pickup }),
+        },
+      ]
+    }).slice(0, 100)
+  } catch {
+    return []
+  }
 }
 
 function isHttpsUrl(value: string) {
