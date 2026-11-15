@@ -1,6 +1,5 @@
 import { readMenuPhoto, isStoredMenuPhoto } from "@/lib/menu-photos"
 import type { MenuSection, SnapStatus } from "@/lib/menu"
-import { snapFromRules } from "@/lib/snap-rules"
 
 const model = "grok-4.7"
 
@@ -17,9 +16,13 @@ const instructions = [
   "Preserve the menu's categories, in the same order, as section names.",
   "Preserve each food name as printed.",
   "Preserve each price as printed, without a leading $.",
-  "Do not invent items, categories, prices, or SNAP marks that are not on the menu.",
-  'snap is "eligible" or "not-eligible" only when the menu itself marks SNAP, EBT, or eligibility for that item. Otherwise snap is an empty string.',
-  "soldHot is true only when the menu shows the item is hot at the point of sale, such as a hot bar, rotisserie, or a drink served hot. Packaged foods, hot sauce, and hot dogs are not sold hot.",
+  "Do not invent items, categories, or prices that are not on the menu.",
+  'Set snap to "eligible" or "not-eligible" for every item.',
+  "If the menu itself marks SNAP, EBT, or eligibility, keep that mark.",
+  "Otherwise decide with USDA SNAP rules. Household food is eligible: fruits and vegetables, meat, poultry, fish, dairy, breads and cereals, snack foods, non-alcoholic beverages, and seeds or plants that produce food for the household.",
+  "These are not eligible: beer, wine, and liquor; cigarettes and tobacco; cannabis, marijuana, and CBD; vitamins, medicines, and supplements; live animals except shellfish, fish removed from water, and animals slaughtered before pickup; food that is hot at the point of sale; pet food; cleaning supplies, paper products, and household supplies; hygiene items and cosmetics.",
+  'Mark snap "eligible" only when you are at least 80% sure the item is eligible. If you are less sure, mark snap "not-eligible".',
+  "soldHot is true only when the menu shows the item is hot at the point of sale, such as a hot bar, rotisserie, or a drink served hot. Packaged foods, hot sauce, and hot dogs are not sold hot. A soldHot item is not eligible.",
   "Skip decorative text, addresses, hours, and section headings with no items.",
 ].join("\n")
 
@@ -143,7 +146,7 @@ export function sectionsFromModel(raw: string): MenuSection[] {
     }
 
     const items = record.items.flatMap((item) => {
-      const menuItem = readItem(item, name)
+      const menuItem = readItem(item)
       return menuItem ? [menuItem] : []
     })
     if (items.length === 0) {
@@ -161,7 +164,7 @@ export function sectionsFromModel(raw: string): MenuSection[] {
   return sections
 }
 
-function readItem(value: unknown, section: string) {
+function readItem(value: unknown) {
   if (!value || typeof value !== "object") {
     return null
   }
@@ -172,7 +175,7 @@ function readItem(value: unknown, section: string) {
   }
   const mark = snapMark(item.snap)
   const soldHot = item.soldHot === true
-  const snap: SnapStatus = mark || snapFromRules(name, section, soldHot)
+  const snap: SnapStatus = soldHot ? "not-eligible" : mark || "not-eligible"
   return {
     id: crypto.randomUUID(),
     name,
