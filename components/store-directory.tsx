@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
 import { storeDistances } from "@/app/actions"
 import { useCart } from "@/components/cart-provider"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { StoreAccount } from "@/lib/accounts"
+import type { PantryDetail } from "@/lib/pantry"
 import { cn } from "@/lib/utils"
 
 type LocationState =
@@ -13,10 +14,17 @@ type LocationState =
   | { status: "ready"; lat: number; lon: number }
   | { status: "denied" }
 
-export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
+export function StoreDirectory({
+  stores,
+  pantries,
+}: {
+  stores: StoreAccount[]
+  pantries?: Record<string, PantryDetail>
+}) {
   const cart = useCart()
   const [location, setLocation] = useState<LocationState>({ status: "pending" })
   const [distances, setDistances] = useState<Record<string, number | null> | null>(null)
+  const [menuName, setMenuName] = useState<string | null>(null)
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -90,33 +98,51 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
     return aDistance - bDistance
   })
 
+  const menuFoods = menuName ? pantries?.[menuName]?.foods ?? [] : null
+
   return (
+    <>
+    <p className="sr-only" aria-live="polite">
+      {location.status === "pending"
+        ? "Finding your location…"
+        : location.status === "denied"
+          ? "Location access is off, so distances stay hidden."
+          : distances
+            ? "Stores are sorted by distance."
+            : "Calculating distance…"}
+    </p>
     <ul className="flex flex-col gap-3">
       {ordered.map((store, index) => (
         <li
           key={`${store.name}-${store.address}-${index}`}
-          className="surface subtle-shadow card-hover flex flex-col gap-1 p-4"
+          className="store-card surface subtle-shadow card-hover flex flex-col gap-1 p-4"
         >
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-semibold">{store.name}</h2>
-            <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="min-w-0 break-words font-semibold">{store.name}</h2>
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
               {store.snapEligible ? (
-                <span className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-center text-[10px] font-semibold leading-tight text-yellow-950">
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-950">
                   SNAP
                 </span>
               ) : null}
               {store.category === "food_pantry" ? (
-                <span className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-orange-500 px-1 text-center text-[10px] font-semibold leading-tight text-white">
-                  food bank
+                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-950">
+                  Food Bank
                 </span>
               ) : null}
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">{store.address}</p>
-          <p className="text-sm">{distanceLabel(store.address, location, distances)}</p>
+          <p className="break-words text-sm text-muted-foreground">{store.address}</p>
+          <p className="text-sm tabular-nums">{distanceLabel(store.address, location, distances)}</p>
           {store.category === "food_pantry" ? (
             <div className="mt-2 flex flex-col items-start gap-2">
               <p className="text-sm text-muted-foreground">Food bank. Meals are free.</p>
+              {pantries ? (
+                <PantrySchedule
+                  detail={pantries[store.name]}
+                  onOpenMenu={() => setMenuName(store.name)}
+                />
+              ) : null}
               <Button
                 type="button"
                 size="sm"
@@ -131,22 +157,113 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
                   })
                 }
               >
-                Add meal
+                Add Meal
               </Button>
             </div>
           ) : (
             <Link
               href={`/menu?name=${encodeURIComponent(store.name)}&address=${encodeURIComponent(store.address)}`}
-              className={cn(buttonVariants({ size: "sm" }), "mt-2 w-fit")}
+              className={cn(buttonVariants({ size: "sm" }), "mt-2 h-9 w-fit")}
             >
-              View menu
+              View Menu
             </Link>
           )}
         </li>
       ))}
     </ul>
+    <PantryMenuDialog name={menuName} foods={menuFoods} onClose={() => setMenuName(null)} />
+    </>
   )
 }
+
+function PantrySchedule({
+  detail,
+  onOpenMenu,
+}: {
+  detail: PantryDetail | undefined
+  onOpenMenu: () => void
+}) {
+  const foods = detail?.foods ?? []
+  if (detail && !detail.loaded) {
+    return <p className="text-sm text-muted-foreground">Hours couldn’t be loaded. Try again in a moment.</p>
+  }
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="break-words text-sm">Days: {detail?.days || "Days aren’t posted"}</p>
+      <p className="break-words text-sm">Hours: {detail?.hours || "Hours aren’t posted"}</p>
+      {foods.length > 0 ? (
+        <Button type="button" size="sm" variant="outline" onClick={onOpenMenu}>
+          Menu
+        </Button>
+      ) : (
+        <p className="text-sm text-muted-foreground">Food isn’t posted</p>
+      )}
+    </div>
+  )
+}
+
+function PantryMenuDialog({
+  name,
+  foods,
+  onClose,
+}: {
+  name: string | null
+  foods: string[] | null
+  onClose: () => void
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) {
+      return
+    }
+    if (foods && foods.length > 0 && !dialog.open) {
+      dialog.showModal()
+    }
+    if ((!foods || foods.length === 0) && dialog.open) {
+      dialog.close()
+    }
+  }, [foods])
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      className="app-dialog m-auto w-[min(100%-2rem,28rem)] rounded-xl border border-border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target === dialogRef.current) {
+          onClose()
+        }
+      }}
+    >
+      <div className="flex flex-col gap-4 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <h2 id={titleId} className="min-w-0 break-words text-lg font-semibold">
+            {name}
+          </h2>
+          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {foods?.map((food) => (
+            <li key={food} className="break-words text-sm">
+              {food}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </dialog>
+  )
+}
+
+const mileFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
 
 function distanceLabel(
   address: string,
@@ -166,5 +283,5 @@ function distanceLabel(
   if (typeof miles !== "number") {
     return "Distance unavailable"
   }
-  return `${miles.toFixed(1)} mi away`
+  return `${mileFormat.format(miles)} mi away`
 }
