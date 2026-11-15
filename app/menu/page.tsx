@@ -6,6 +6,7 @@ import { PageFrame } from "@/components/page-frame"
 import { StoreMenu, type MenuTableRow } from "@/components/store-menu"
 import { buttonVariants } from "@/components/ui/button"
 import { loadMenu, menuForStore, type SnapStatus } from "@/lib/menu"
+import { currentCartAccountId } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
 const snapLabels: Record<SnapStatus, string> = {
@@ -36,6 +37,7 @@ async function MenuHome({
   const params = await searchParams
   const storeName = firstParam(params.name) || "Store"
   const storeAddress = firstParam(params.address)
+  const accountId = await currentCartAccountId()
   const menu = await loadMenu()
   const rows: MenuTableRow[] = menuForStore(menu.sections, storeName).flatMap((section) =>
     section.items.map((item) => ({
@@ -49,7 +51,7 @@ async function MenuHome({
   )
 
   return (
-    <CartProvider>
+    <CartProvider accountId={accountId}>
       <div className="flex flex-col gap-8">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2">
