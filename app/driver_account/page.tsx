@@ -32,8 +32,8 @@ async function DriverAccount() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="rounded-2xl bg-foreground px-6 py-14 text-background">
-        <p className="text-sm tracking-wide text-background/70">Welcome</p>
+      <section className="rounded-2xl bg-primary px-6 py-14 text-primary-foreground subtle-shadow">
+        <p className="text-sm tracking-wide text-primary-foreground/70">Welcome</p>
         <h1 className="mt-3 text-5xl font-semibold tracking-tight">{username}</h1>
       </section>
       <div className="flex flex-col gap-2">
@@ -47,7 +47,7 @@ async function DriverAccount() {
       ) : (
         <ul className="flex flex-col gap-3">
           {orders.map((order) => (
-            <li key={order.id} className="flex flex-col gap-3 rounded-xl border border-border p-4">
+            <li key={order.id} className="surface subtle-shadow flex flex-col gap-3 p-4">
               <div className="flex flex-col gap-3">
                 <div>
                   <p className="text-sm text-muted-foreground">Starting point</p>

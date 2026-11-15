@@ -5,7 +5,7 @@ import { checkoutFrameSource, ebtFrameSource } from "@/lib/checkout"
 import { Button } from "@/components/ui/button"
 
 const fieldClassName =
-  "h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-base text-neutral-900 outline-none"
+  "h-10 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 export default function EbtSecurePage() {
   const [pan, setPan] = useState("")
@@ -163,7 +163,7 @@ export default function EbtSecurePage() {
 
   return (
     <form
-      className="flex flex-col gap-3 bg-white p-1 text-neutral-900"
+      className="flex flex-col gap-3 bg-background p-1 text-foreground"
       onSubmit={(event) => {
         event.preventDefault()
         void checkBalance()
@@ -197,10 +197,10 @@ export default function EbtSecurePage() {
           className={fieldClassName}
         />
       </label>
-      <Button type="submit" variant="outline" className="h-10" disabled={busy}>
+      <Button type="submit" className="h-10" disabled={busy}>
         {busy ? "Contacting EBT…" : "Check balance"}
       </Button>
-      <p className="text-xs text-neutral-600">{status}</p>
+      <p className="text-xs text-muted-foreground">{status}</p>
     </form>
   )
 }

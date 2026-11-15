@@ -95,7 +95,7 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
       {ordered.map((store, index) => (
         <li
           key={`${store.name}-${store.address}-${index}`}
-          className="flex flex-col gap-1 rounded-xl border border-border p-4"
+          className="surface subtle-shadow card-hover flex flex-col gap-1 p-4"
         >
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold">{store.name}</h2>
@@ -119,7 +119,6 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
               <p className="text-sm text-muted-foreground">Food bank. Meals are free.</p>
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
                 onClick={() =>
                   cart.addItem({
@@ -138,7 +137,7 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
           ) : (
             <Link
               href={`/menu?name=${encodeURIComponent(store.name)}&address=${encodeURIComponent(store.address)}`}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-2 w-fit")}
+              className={cn(buttonVariants({ size: "sm" }), "mt-2 w-fit")}
             >
               View menu
             </Link>

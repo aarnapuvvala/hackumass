@@ -153,7 +153,7 @@ function OrderGroup({
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-start justify-between gap-3 rounded-lg border border-border p-3"
+              className="surface flex items-start justify-between gap-3 p-3"
             >
               <div>
                 <p className="font-medium">{item.name}</p>

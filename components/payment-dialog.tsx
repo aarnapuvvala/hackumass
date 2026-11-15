@@ -187,7 +187,7 @@ function Receipt({
   remainingBalance: number | null
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border p-3">
+    <div className="surface flex flex-col gap-1 p-3">
       <p className="text-sm font-medium">{title}</p>
       <p className="text-sm">Card •••• {last4}</p>
       <p className="text-sm">Amount paid {formatMoney(amount)}</p>
@@ -400,7 +400,7 @@ function PayForm({
           ref={frameRef}
           title="Secure EBT card and PIN"
           src="/ebt/secure"
-          className="h-72 w-full rounded-lg border border-border bg-white"
+          className="surface h-72 w-full"
         />
         <p className="text-xs text-muted-foreground">
           EBT cards have no expiration date, CVV, or ZIP code. The sandbox accepts any 4-digit PIN.
