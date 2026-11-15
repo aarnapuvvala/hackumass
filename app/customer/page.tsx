@@ -1,9 +1,15 @@
+import { Suspense } from "react"
 import { continueAsGuest, login, startCustomerSignup } from "@/app/actions"
+import { AccountCreatedNotice } from "@/components/account-created-notice"
 import { LoginForm } from "@/components/login-form"
 import { PageFrame, PageIntro } from "@/components/page-frame"
 import { Button } from "@/components/ui/button"
 
-export default function CustomerPage() {
+export default function CustomerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ created?: string | string[] }>
+}) {
   return (
     <PageFrame>
       <PageIntro
@@ -13,6 +19,12 @@ export default function CustomerPage() {
       />
       <section className="surface subtle-shadow flex flex-col gap-4 p-5">
         <h2 className="text-lg font-semibold">Log In</h2>
+        <Suspense>
+          <AccountCreatedNotice
+            searchParams={searchParams}
+            message="Account created. Log in with your username and password."
+          />
+        </Suspense>
         <LoginForm action={login} submitLabel="Log In" redirectTo="/customer_account" />
       </section>
       <form action={startCustomerSignup}>
