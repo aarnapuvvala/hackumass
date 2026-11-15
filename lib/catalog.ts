@@ -58,6 +58,7 @@ export function publicStore(store: CatalogStore): StoreAccount {
     name: store.name,
     address: store.address,
     snapEligible: store.snapEligible,
+    ...(store.category ? { category: store.category } : {}),
   }
 }
 
@@ -70,6 +71,7 @@ function readCatalogStore(value: unknown): CatalogStore | null {
   const username = text(store.username) || name
   const password = text(store.password)
   const address = text(store.address)
+  const category = text(store.category)
   if (store.role !== "store" || !name || !password || !address || typeof store.snapEligible !== "boolean") {
     return null
   }
@@ -91,6 +93,7 @@ function readCatalogStore(value: unknown): CatalogStore | null {
     password,
     address,
     snapEligible: store.snapEligible,
+    ...(category ? { category } : {}),
     categories,
   }
 }

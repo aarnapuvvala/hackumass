@@ -182,11 +182,15 @@ function CartLine({
         <div>
           <p className="font-medium">{item.name}</p>
           <p className="text-sm text-muted-foreground">{item.detail}</p>
-          <p className="text-sm text-muted-foreground">{formatMoney(item.price)} each</p>
+          <p className="text-sm text-muted-foreground">
+            {item.price === 0 ? "Free" : `${formatMoney(item.price)} each`}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-sm font-medium">Qty {item.quantity}</p>
-          <p className="text-sm font-medium">{formatMoney(item.price * item.quantity)}</p>
+          <p className="text-sm font-medium">
+            {item.price === 0 ? "Free" : formatMoney(item.price * item.quantity)}
+          </p>
         </div>
       </div>
       <div className="flex gap-2">

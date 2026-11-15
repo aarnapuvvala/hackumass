@@ -132,6 +132,9 @@ export async function createOrder(
   }
 
   const quote = quoteCheckout(items, tipCents)
+  if (quote.grandCents === 0) {
+    return placeFreeOrder(address, items, checkoutId)
+  }
   const ebtCharge = ebtChargeId ? await getEbtCharge(ebtChargeId) : null
   if (ebtChargeId && (!ebtCharge || ebtCharge.voided || ebtCharge.consumed)) {
     return { ok: false, error: "The EBT payment is no longer available. Try again." }
@@ -366,6 +369,33 @@ export async function storeDistances(
         : Math.round(milesBetween(lat, lon, point.lat, point.lon) * 10) / 10
   }
   return distances
+}
+
+async function placeFreeOrder(
+  address: string,
+  items: OrderItem[],
+  checkoutId: string
+): Promise<CreateOrderState> {
+  const cookieStore = await cookies()
+  const username = cookieStore.get("username")?.value?.trim()
+  const customer = cookieStore.get("auth")?.value === "login" && username ? username : "guest"
+  const payment: OrderPayment = {
+    checkoutId,
+    tip: 0,
+    deliveryFee: 0,
+    salesTax: 0,
+    snapSubtotal: 0,
+    otherSubtotal: 0,
+    card: null,
+    ebt: null,
+  }
+  try {
+    const order = await addOrder({ address, customer, items, payment })
+    return { ok: true, orderId: order.id, card: null, ebt: null }
+  } catch (error) {
+    console.error(error)
+    return { ok: false, error: "The order could not be saved." }
+  }
 }
 
 function text(formData: FormData, key: string) {

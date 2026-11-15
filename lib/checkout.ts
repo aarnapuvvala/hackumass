@@ -33,8 +33,12 @@ export function quoteCheckout(items: BillableItem[], tipCents: number): Checkout
     .filter((item) => !item.snapEligible)
     .reduce((sum, item) => sum + lineCents(item.price, item.quantity), 0)
   const taxCents = Math.round(otherCents * SALES_TAX_RATE)
-  const deliveryCents = items.length > 0 ? DELIVERY_FEE_CENTS : 0
-  const tip = Number.isInteger(tipCents) ? Math.min(Math.max(tipCents, 0), MAX_TIP_CENTS) : 0
+  const complimentary = snapCents + otherCents === 0
+  const deliveryCents = !complimentary && items.length > 0 ? DELIVERY_FEE_CENTS : 0
+  const tip =
+    complimentary || !Number.isInteger(tipCents)
+      ? 0
+      : Math.min(Math.max(tipCents, 0), MAX_TIP_CENTS)
   return {
     snapCents,
     otherCents,

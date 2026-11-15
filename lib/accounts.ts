@@ -28,6 +28,7 @@ export type StoreAccount = {
   address: string
   password?: string
   snapEligible: boolean
+  category?: string
   createdAt?: string
 }
 

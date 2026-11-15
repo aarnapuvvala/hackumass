@@ -161,7 +161,9 @@ function OrderGroup({
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium">Qty {item.quantity}</p>
-                <p className="text-sm font-medium">{formatMoney(item.price * item.quantity)}</p>
+                <p className="text-sm font-medium">
+                  {item.price === 0 ? "Free" : formatMoney(item.price * item.quantity)}
+                </p>
               </div>
             </li>
           ))}

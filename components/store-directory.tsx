@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Circle } from "lucide-react"
 import { storeDistances } from "@/app/actions"
-import { buttonVariants } from "@/components/ui/button"
+import { useCart } from "@/components/cart-provider"
+import { Button, buttonVariants } from "@/components/ui/button"
 import type { StoreAccount } from "@/lib/accounts"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +14,7 @@ type LocationState =
   | { status: "denied" }
 
 export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
+  const cart = useCart()
   const [location, setLocation] = useState<LocationState>({ status: "pending" })
   const [distances, setDistances] = useState<Record<string, number | null> | null>(null)
 
@@ -98,21 +99,50 @@ export function StoreDirectory({ stores }: { stores: StoreAccount[] }) {
         >
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold">{store.name}</h2>
-            {store.snapEligible ? (
-              <Circle
-                className="fill-yellow-400 text-yellow-500"
-                aria-label="SNAP eligible"
-              />
-            ) : null}
+            <div className="flex shrink-0 items-center gap-1.5">
+              {store.snapEligible ? (
+                <span className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-center text-[10px] font-semibold leading-tight text-yellow-950">
+                  SNAP
+                </span>
+              ) : null}
+              {store.category === "food_pantry" ? (
+                <span className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-orange-500 px-1 text-center text-[10px] font-semibold leading-tight text-white">
+                  food bank
+                </span>
+              ) : null}
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">{store.address}</p>
           <p className="text-sm">{distanceLabel(store.address, location, distances)}</p>
-          <Link
-            href={`/menu?name=${encodeURIComponent(store.name)}&address=${encodeURIComponent(store.address)}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-2 w-fit")}
-          >
-            View menu
-          </Link>
+          {store.category === "food_pantry" ? (
+            <div className="mt-2 flex flex-col items-start gap-2">
+              <p className="text-sm text-muted-foreground">Food bank. Meals are free.</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  cart.addItem({
+                    id: `pantry|${store.address}|${store.name}|meal`,
+                    name: "Meal",
+                    detail: store.name,
+                    price: 0,
+                    pickup: store.address,
+                    snapEligible: false,
+                  })
+                }
+              >
+                Add meal
+              </Button>
+            </div>
+          ) : (
+            <Link
+              href={`/menu?name=${encodeURIComponent(store.name)}&address=${encodeURIComponent(store.address)}`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-2 w-fit")}
+            >
+              View menu
+            </Link>
+          )}
         </li>
       ))}
     </ul>

@@ -321,10 +321,15 @@ function PayForm({
         <Row label="Delivery fee" value={money(quote.deliveryCents)} />
         <Row label="Tip" value={tipCents == null ? "—" : money(tipCents)} />
       </div>
+      {quote.grandCents === 0 ? (
+        <p className="text-sm text-muted-foreground">This order is free. Nothing is charged.</p>
+      ) : (
       <p className="text-sm text-muted-foreground">
         Sales tax, the delivery fee, and the tip are never charged to EBT. Those amounts, plus
         anything SNAP does not cover, go on the credit card.
       </p>
+      )}
+      {quote.grandCents === 0 ? null : (
       <label className="flex flex-col gap-1.5 text-sm font-medium">
         Tip
         <input
@@ -334,6 +339,8 @@ function PayForm({
           className={fieldClassName}
         />
       </label>
+      )}
+      {quote.grandCents === 0 ? null : (
       <div className="flex gap-2">
         {["0", "2", "3", "5"].map((amount) => (
           <Button
@@ -347,6 +354,26 @@ function PayForm({
           </Button>
         ))}
       </div>
+      )}
+      {quote.grandCents === 0 ? (
+        <Button
+          type="button"
+          size="lg"
+          className="h-10"
+          disabled={pending || !checkoutId}
+          onClick={() =>
+            onPaid({
+              checkoutId,
+              paymentIntentId: "",
+              ebtChargeId: "",
+              tipCents: 0,
+            })
+          }
+        >
+          {pending ? "Placing order…" : "Place free order"}
+        </Button>
+      ) : (
+      <>
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-medium">Payment method</legend>
         <label className="flex items-center gap-2 text-sm">
@@ -438,6 +465,8 @@ function PayForm({
             Pay and place order
           </Button>
         </div>
+      )}
+      </>
       )}
     </div>
   )

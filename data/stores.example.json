@@ -19,6 +19,13 @@
   },
   {
     "role": "store",
+    "name": "Amherst Survival Center",
+    "address": "138 Sunderland Rd, Amherst, MA 01002",
+    "snapEligible": true,
+    "category": "food_pantry"
+  },
+  {
+    "role": "store",
     "name": "Amherst Market",
     "address": "259 Triangle St, Amherst, MA 01002",
     "snapEligible": false
