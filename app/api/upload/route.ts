@@ -21,6 +21,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image must be under 4 MB." }, { status: 400 })
   }
 
+  if (purpose === "menu" && file.type !== "image/jpeg" && file.type !== "image/jpg" && file.type !== "image/png") {
+    return Response.json(
+      { error: "Use a JPG or PNG photo so the menu can be read." },
+      { status: 400 }
+    )
+  }
+
   if (purpose === "license" || purpose === "menu") {
     const filename = purpose === "menu" ? menuPhotoFilename(file) : licenseFilename(file)
     if (!filename) {

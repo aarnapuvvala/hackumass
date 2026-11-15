@@ -38,6 +38,7 @@ export function CreateMenu({
   const [savingPhoto, setSavingPhoto] = useState(false)
   const [menuError, setMenuError] = useState("")
   const [menuSaved, setMenuSaved] = useState(false)
+  const [photoMenuNote, setPhotoMenuNote] = useState("")
   const [savingMenu, setSavingMenu] = useState(false)
   const [viewing, setViewing] = useState(false)
   const [activeSection, setActiveSection] = useState(initialSections[0]?.id ?? "")
@@ -60,8 +61,8 @@ export function CreateMenu({
     if (!file) {
       return
     }
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Choose an image file, then upload it again.")
+    if (file.type !== "image/jpeg" && file.type !== "image/jpg" && file.type !== "image/png") {
+      setUploadError("Use a JPG or PNG photo so the menu can be read.")
       return
     }
     if (file.size >= maxBytes) {
@@ -99,22 +100,40 @@ export function CreateMenu({
     }
     setSavingPhoto(true)
     setPhotoError("")
+    const form = event.currentTarget
     try {
       const response = await fetch("/api/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ photoUrl }),
       })
-      const result = (await response.json()) as { photoUrl?: string; error?: string }
+      const result = (await response.json()) as {
+        photoUrl?: string
+        sections?: MenuSection[]
+        error?: string
+      }
       if (!response.ok || !result.photoUrl) {
         setPhotoError(result.error || "Could not save the menu photo.")
         return
       }
       setMenuPhotoUrl(result.photoUrl)
       setPhotoUrl("")
-      event.currentTarget.reset()
+      if (result.sections && result.sections.length > 0) {
+        setSections(result.sections)
+        setActiveSection(result.sections[0]?.id ?? "")
+        setDirty(false)
+        setMenuSaved(false)
+        setMenuError("")
+        setPhotoMenuNote("Menu created from the photo. Review the items below.")
+        setPhotoError("")
+      }
+      if (result.error) {
+        setPhotoMenuNote("")
+        setPhotoError(result.error)
+      }
+      form.reset()
     } catch {
-      setPhotoError("Could not save the menu photo.")
+      setPhotoError("The menu request did not finish. Leave the page open for about a minute, then try Save Menu Photo again.")
     } finally {
       setSavingPhoto(false)
     }
@@ -123,6 +142,7 @@ export function CreateMenu({
   function updateSection(id: string, patch: Partial<MenuSection>) {
     setDirty(true)
     setMenuSaved(false)
+    setPhotoMenuNote("")
     setSections((current) =>
       current.map((section) => (section.id === id ? { ...section, ...patch } : section))
     )
@@ -135,6 +155,7 @@ export function CreateMenu({
   ) {
     setDirty(true)
     setMenuSaved(false)
+    setPhotoMenuNote("")
     setSections((current) =>
       current.map((section) =>
         section.id === sectionId
@@ -195,7 +216,7 @@ export function CreateMenu({
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold">Create Menu</h2>
             <p className="text-sm text-muted-foreground">
-              Upload a photo of the menu, or build sections and items by hand.
+              Upload a JPG or PNG of the menu. Categories, names, prices, and printed SNAP marks are kept. Unmarked items follow SNAP rules.
             </p>
           </div>
           <Button type="button" variant="outline" onClick={() => setViewing((open) => !open)}>
@@ -209,7 +230,7 @@ export function CreateMenu({
             Photo of the Menu
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,.jpg,.jpeg,.png"
               disabled={uploading}
               onChange={(event) => {
                 void uploadPhoto(event.target.files?.[0])
@@ -220,6 +241,11 @@ export function CreateMenu({
           {uploading ? (
             <p className="text-sm text-muted-foreground" aria-live="polite">
               Uploading photo…
+            </p>
+          ) : null}
+          {savingPhoto ? (
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              Reading the menu. This usually takes about a minute. Leave this page open.
             </p>
           ) : null}
           {photoUrl ? (
@@ -241,7 +267,7 @@ export function CreateMenu({
             className="h-10"
             disabled={uploading || savingPhoto}
           >
-            {savingPhoto ? "Saving…" : "Save Menu Photo"}
+            {savingPhoto ? "Reading menu…" : "Save Menu Photo"}
           </Button>
           {menuPhotoUrl ? (
             <img
@@ -261,6 +287,11 @@ export function CreateMenu({
             <p className="text-sm text-muted-foreground">
               Add sections, then add items with a price and SNAP eligibility.
             </p>
+            {photoMenuNote ? (
+              <p className="text-sm text-muted-foreground" role="status">
+                {photoMenuNote}
+              </p>
+            ) : null}
           </div>
 
           {sections.length === 0 ? (
@@ -371,6 +402,7 @@ export function CreateMenu({
                     onClick={() => {
                       setDirty(true)
                       setMenuSaved(false)
+                      setPhotoMenuNote("")
                       setSections((current) => current.filter((entry) => entry.id !== section.id))
                     }}
                   >
@@ -387,6 +419,7 @@ export function CreateMenu({
             onClick={() => {
               setDirty(true)
               setMenuSaved(false)
+              setPhotoMenuNote("")
               const id = crypto.randomUUID()
               setSections((current) => [...current, { id, name: "", items: [] }])
               setActiveSection((current) => current || id)
