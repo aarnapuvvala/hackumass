@@ -315,25 +315,29 @@ export async function createAccount(
   } else if (role === "store") {
     const name = text(formData, "name")
     const address = text(formData, "address")
-    if (!name || !address) {
-      return { ok: false, error: "Name and address are required." }
+    const password = String(formData.get("password") ?? "")
+    if (!name || !address || !password) {
+      return { ok: false, error: "Name, address, and password are required." }
     }
     account = {
       role,
       name,
       address,
+      password,
       snapEligible: formData.get("snapEligible") === "on",
       createdAt,
     }
+    await addAccount(account)
+    cookieStore.set("role", "store", cookieOptions)
+    cookieStore.set("username", name, cookieOptions)
+    cookieStore.set("password", password, cookieOptions)
+    cookieStore.set("auth", "login", cookieOptions)
+    redirect("/account-store")
   } else {
     return { ok: false, error: "Choose a role before creating an account." }
   }
 
   await addAccount(account)
-  if (role === "store") {
-    cookieStore.set("auth", "login", cookieOptions)
-    redirect("/account-store")
-  }
   return { ok: true }
 }
 

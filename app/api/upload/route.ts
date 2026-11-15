@@ -1,5 +1,6 @@
 import { put } from "@vercel/blob"
 import { licenseFilename, saveLicense } from "@/lib/licenses"
+import { menuPhotoFilename, saveMenuPhotoFile } from "@/lib/menu-photos"
 
 const maxBytes = 4 * 1024 * 1024
 
@@ -20,13 +21,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image must be under 4 MB." }, { status: 400 })
   }
 
-  if (purpose === "license") {
-    const filename = licenseFilename(file)
+  if (purpose === "license" || purpose === "menu") {
+    const filename = purpose === "menu" ? menuPhotoFilename(file) : licenseFilename(file)
     if (!filename) {
       return Response.json({ error: "Use a JPG, PNG, GIF, or WebP image." }, { status: 400 })
     }
     const bytes = Buffer.from(await file.arrayBuffer())
-    const url = await saveLicense(filename, bytes)
+    const url =
+      purpose === "menu" ? await saveMenuPhotoFile(filename, bytes) : await saveLicense(filename, bytes)
     return Response.json({ url })
   }
 

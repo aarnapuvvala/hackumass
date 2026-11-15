@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { loadCatalogStores } from "@/lib/catalog"
+import { isStoredMenuPhoto } from "@/lib/menu-photos"
 
 const menuPath = path.join(process.cwd(), "data", "menu.json")
 
@@ -229,6 +230,9 @@ function priceText(value: unknown) {
 function httpsUrl(value: unknown) {
   if (typeof value !== "string") {
     return ""
+  }
+  if (isStoredMenuPhoto(value)) {
+    return value
   }
   try {
     return new URL(value).protocol === "https:" ? value : ""

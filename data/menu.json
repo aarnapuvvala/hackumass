@@ -1,47 +1,47 @@
 {
-  "photoUrl": "",
+  "photoUrl": "/api/menu-photos/7dbd2fd2-94b5-4677-864d-2bf34794df37.png",
   "sections": [
     {
       "id": "produce",
       "name": "Produce",
       "items": [
         {
-          "id": "bigy-bananas",
+          "id": "big-y-supermarkets-bananas",
           "name": "Bananas",
           "price": "0.69",
           "snap": "eligible",
           "store": "Big Y Supermarkets"
         },
         {
-          "id": "bigy-gala-apples",
+          "id": "big-y-supermarkets-gala-apples",
           "name": "Gala Apples",
           "price": "1.79",
           "snap": "eligible",
           "store": "Big Y Supermarkets"
         },
         {
-          "id": "atkins-local-apples",
+          "id": "atkins-farms-country-market-local-apples",
           "name": "Local Apples",
           "price": "2.49",
           "snap": "eligible",
           "store": "Atkins Farms Country Market"
         },
         {
-          "id": "atkins-butternut-squash",
+          "id": "atkins-farms-country-market-butternut-squash",
           "name": "Butternut Squash",
           "price": "1.99",
           "snap": "eligible",
           "store": "Atkins Farms Country Market"
         },
         {
-          "id": "amherst-yellow-onions",
+          "id": "amherst-market-yellow-onions",
           "name": "Yellow Onions",
           "price": "1.29",
           "snap": "eligible",
           "store": "Amherst Market"
         },
         {
-          "id": "amherst-roma-tomatoes",
+          "id": "amherst-market-roma-tomatoes",
           "name": "Roma Tomatoes",
           "price": "2.79",
           "snap": "eligible",
@@ -54,42 +54,42 @@
       "name": "Dairy",
       "items": [
         {
-          "id": "bigy-whole-milk",
+          "id": "big-y-supermarkets-whole-milk",
           "name": "Whole Milk",
           "price": "3.89",
           "snap": "eligible",
           "store": "Big Y Supermarkets"
         },
         {
-          "id": "bigy-sharp-cheddar",
+          "id": "big-y-supermarkets-sharp-cheddar",
           "name": "Sharp Cheddar",
           "price": "5.49",
           "snap": "eligible",
           "store": "Big Y Supermarkets"
         },
         {
-          "id": "atkins-farm-eggs",
+          "id": "atkins-farms-country-market-farm-eggs",
           "name": "Farm Eggs",
           "price": "6.50",
           "snap": "eligible",
           "store": "Atkins Farms Country Market"
         },
         {
-          "id": "atkins-cheddar-curds",
+          "id": "atkins-farms-country-market-cheddar-curds",
           "name": "Cheddar Curds",
           "price": "7.99",
           "snap": "eligible",
           "store": "Atkins Farms Country Market"
         },
         {
-          "id": "amherst-2-percent-milk",
+          "id": "amherst-market-2-milk",
           "name": "2% Milk",
           "price": "3.69",
           "snap": "eligible",
           "store": "Amherst Market"
         },
         {
-          "id": "amherst-american-cheese",
+          "id": "amherst-market-american-cheese",
           "name": "American Cheese",
           "price": "4.29",
           "snap": "eligible",
@@ -102,21 +102,21 @@
       "name": "Deli",
       "items": [
         {
-          "id": "bigy-rotisserie-chicken",
+          "id": "big-y-supermarkets-rotisserie-chicken",
           "name": "Rotisserie Chicken",
           "price": "8.99",
           "snap": "not-eligible",
           "store": "Big Y Supermarkets"
         },
         {
-          "id": "atkins-hot-apple-cider",
+          "id": "atkins-farms-country-market-hot-apple-cider",
           "name": "Hot Apple Cider",
           "price": "3.50",
           "snap": "not-eligible",
           "store": "Atkins Farms Country Market"
         },
         {
-          "id": "amherst-hot-breakfast-sandwich",
+          "id": "amherst-market-hot-breakfast-sandwich",
           "name": "Hot Breakfast Sandwich",
           "price": "5.99",
           "snap": "not-eligible",
@@ -124,5 +124,6 @@
         }
       ]
     }
-  ]
+  ],
+  "source": "saved"
 }
