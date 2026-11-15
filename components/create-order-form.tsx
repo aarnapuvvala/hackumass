@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react"
 import { createOrder, type CreateOrderState } from "@/app/actions"
-import { cartStorageKey, formatMoney, useCart } from "@/components/cart-provider"
+import { cartStorageKey, formatMoney, useCart, type CartItem } from "@/components/cart-provider"
 import { Button } from "@/components/ui/button"
 
 const fieldClassName =
@@ -15,7 +15,11 @@ export function CreateOrderForm() {
     createOrder,
     null
   )
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const snapItems = items.filter((item) => item.snapEligible)
+  const otherItems = items.filter((item) => !item.snapEligible)
+  const snapTotal = snapItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const otherTotal = otherItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const total = snapTotal + otherTotal
   const pickups = [...new Set(items.map((item) => item.pickup).filter(Boolean))]
 
   useEffect(() => {
@@ -59,26 +63,13 @@ export function CreateOrderForm() {
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">Your cart is empty.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-start justify-between gap-3 rounded-lg border border-border p-3"
-            >
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-muted-foreground">{item.detail}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium">Qty {item.quantity}</p>
-                <p className="text-sm font-medium">{formatMoney(item.price * item.quantity)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-5">
+          <OrderGroup title="SNAP eligible" totalLabel="SNAP total" items={snapItems} subtotal={snapTotal} />
+          <OrderGroup title="Not SNAP eligible" totalLabel="Other total" items={otherItems} subtotal={otherTotal} />
+        </div>
       )}
-      <div className="flex items-center justify-between gap-3">
-        <p className="font-medium">Total</p>
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+        <p className="font-medium">Order total</p>
         <p className="text-lg font-semibold">{formatMoney(total)}</p>
       </div>
       <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -109,5 +100,48 @@ export function CreateOrderForm() {
         {pending ? "Creating order…" : "Create order"}
       </Button>
     </form>
+  )
+}
+
+function OrderGroup({
+  title,
+  totalLabel,
+  items,
+  subtotal,
+}: {
+  title: string
+  totalLabel: string
+  items: CartItem[]
+  subtotal: number
+}) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-sm font-semibold">{title}</h2>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">None</p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="flex items-start justify-between gap-3 rounded-lg border border-border p-3"
+            >
+              <div>
+                <p className="font-medium">{item.name}</p>
+                <p className="text-sm text-muted-foreground">{item.detail}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium">Qty {item.quantity}</p>
+                <p className="text-sm font-medium">{formatMoney(item.price * item.quantity)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium">{totalLabel}</p>
+        <p className="text-sm font-semibold">{formatMoney(subtotal)}</p>
+      </div>
+    </section>
   )
 }

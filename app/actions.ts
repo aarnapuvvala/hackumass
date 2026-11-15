@@ -290,6 +290,7 @@ function parseOrderItems(value: FormDataEntryValue | null): OrderItem[] {
           price,
           quantity,
           pickup: pickupAddress({ id: item.id, pickup }),
+          snapEligible: item.snapEligible === true,
         },
       ]
     }).slice(0, 100)

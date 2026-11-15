@@ -16,6 +16,7 @@ export type OrderItem = {
   price: number
   quantity: number
   pickup: string
+  snapEligible: boolean
 }
 
 export type Order = {
@@ -128,7 +129,7 @@ export async function addOrder(input: {
     customer: input.customer,
     driver: null,
     items: input.items,
-    total: input.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    total: orderTotal(input.items),
     createdAt: new Date().toISOString(),
   }
   orders.push(order)
@@ -139,6 +140,16 @@ export async function addOrder(input: {
 export async function listDriverOrders(driver: string) {
   const orders = await readOrders()
   return orders.filter((order) => order.driver === null || order.driver === driver)
+}
+
+function orderTotal(items: OrderItem[]) {
+  const snapTotal = items
+    .filter((item) => item.snapEligible)
+    .reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const otherTotal = items
+    .filter((item) => !item.snapEligible)
+    .reduce((sum, item) => sum + item.price * item.quantity, 0)
+  return snapTotal + otherTotal
 }
 
 function uniquePickups(items: OrderItem[]) {
@@ -152,7 +163,9 @@ function withPickups(order: Order) {
   return {
     ...order,
     pickups: stored.length > 0 ? stored : uniquePickups(order.items ?? []),
-    items: Array.isArray(order.items) ? order.items : [],
+    items: Array.isArray(order.items)
+      ? order.items.map((item) => ({ ...item, snapEligible: item.snapEligible === true }))
+      : [],
   }
 }
 

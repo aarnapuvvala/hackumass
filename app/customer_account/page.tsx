@@ -54,7 +54,7 @@ async function AccountHome() {
               A yellow icon means the store accepts SNAP.
             </p>
           </div>
-          <ShoppingCartButton />
+          <ShoppingCartButton groupBySnap />
         </div>
         <StoreDirectory stores={stores} />
       </div>

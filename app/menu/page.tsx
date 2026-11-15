@@ -43,6 +43,7 @@ async function MenuHome({
       name: item.name,
       price: parsePrice(item.price),
       snap: snapLabels[item.snap],
+      snapEligible: item.snap === "eligible",
     }))
   )
 
