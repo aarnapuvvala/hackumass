@@ -152,11 +152,6 @@ export function CreateAccountForm({
           {state.error}
         </p>
       ) : null}
-      {state?.ok ? (
-        <p className="text-sm text-muted-foreground" role="status">
-          Account saved.
-        </p>
-      ) : null}
 
       <Button
         type="submit"

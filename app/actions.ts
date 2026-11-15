@@ -269,6 +269,12 @@ export type CreateAccountState = {
   error?: string
 } | null
 
+const signInPath = {
+  customer: "/customer",
+  driver: "/driver",
+  store: "/store",
+} as const
+
 export async function createAccount(
   _previous: CreateAccountState,
   formData: FormData
@@ -286,12 +292,6 @@ export async function createAccount(
       return { ok: false, error: "Username and password are required." }
     }
     account = { role, username, password, createdAt }
-    await addAccount(account)
-    cookieStore.set("role", "customer", cookieOptions)
-    cookieStore.set("username", username, cookieOptions)
-    cookieStore.set("password", password, cookieOptions)
-    cookieStore.set("auth", "login", cookieOptions)
-    redirect("/customer_account")
   } else if (role === "driver") {
     const username = text(formData, "username")
     const password = String(formData.get("password") ?? "")
@@ -330,18 +330,16 @@ export async function createAccount(
       snapEligible: formData.get("snapEligible") === "on",
       createdAt,
     }
-    await addAccount(account)
-    cookieStore.set("role", "store", cookieOptions)
-    cookieStore.set("username", name, cookieOptions)
-    cookieStore.set("password", password, cookieOptions)
-    cookieStore.set("auth", "login", cookieOptions)
-    redirect("/account-store")
   } else {
     return { ok: false, error: "Choose a role before creating an account." }
   }
 
   await addAccount(account)
-  return { ok: true }
+  cookieStore.set("role", account.role, cookieOptions)
+  cookieStore.delete("auth")
+  cookieStore.delete("username")
+  cookieStore.delete("password")
+  redirect(`${signInPath[account.role]}?created=1`)
 }
 
 export async function storeDistances(
