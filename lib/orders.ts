@@ -19,6 +19,30 @@ export type OrderItem = {
   snapEligible: boolean
 }
 
+export type CardPayment = {
+  last4: string
+  amount: number
+  paymentIntentId: string
+}
+
+export type EbtPayment = {
+  last4: string
+  amount: number
+  remainingBalance: number
+  chargeId: string
+}
+
+export type OrderPayment = {
+  checkoutId: string
+  tip: number
+  deliveryFee: number
+  salesTax: number
+  snapSubtotal: number
+  otherSubtotal: number
+  card: CardPayment | null
+  ebt: EbtPayment | null
+}
+
 export type Order = {
   id: string
   address: string
@@ -27,6 +51,7 @@ export type Order = {
   driver: string | null
   items: OrderItem[]
   total: number
+  payment: OrderPayment | null
   createdAt: string
 }
 
@@ -120,6 +145,7 @@ export async function addOrder(input: {
   address: string
   customer: string
   items: OrderItem[]
+  payment: OrderPayment
 }) {
   const orders = await readOrders()
   const order: Order = {
@@ -129,7 +155,8 @@ export async function addOrder(input: {
     customer: input.customer,
     driver: null,
     items: input.items,
-    total: orderTotal(input.items),
+    total: paidTotal(input.payment),
+    payment: input.payment,
     createdAt: new Date().toISOString(),
   }
   orders.push(order)
@@ -142,14 +169,14 @@ export async function listDriverOrders(driver: string) {
   return orders.filter((order) => order.driver === null || order.driver === driver)
 }
 
-function orderTotal(items: OrderItem[]) {
-  const snapTotal = items
-    .filter((item) => item.snapEligible)
-    .reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const otherTotal = items
-    .filter((item) => !item.snapEligible)
-    .reduce((sum, item) => sum + item.price * item.quantity, 0)
-  return snapTotal + otherTotal
+function paidTotal(payment: OrderPayment) {
+  return (
+    payment.snapSubtotal +
+    payment.otherSubtotal +
+    payment.salesTax +
+    payment.deliveryFee +
+    payment.tip
+  )
 }
 
 function uniquePickups(items: OrderItem[]) {
@@ -166,7 +193,15 @@ function withPickups(order: Order) {
     items: Array.isArray(order.items)
       ? order.items.map((item) => ({ ...item, snapEligible: item.snapEligible === true }))
       : [],
+    payment: normalizePayment(order.payment),
   }
+}
+
+function normalizePayment(payment: Order["payment"] | undefined) {
+  if (!payment || typeof payment !== "object") {
+    return null
+  }
+  return payment
 }
 
 export async function assignOrderToDriver(orderId: string, driver: string) {

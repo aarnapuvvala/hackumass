@@ -15,11 +15,13 @@
           "detail": "Big Y Supermarkets · Produce",
           "price": 1.79,
           "quantity": 5,
-          "pickup": "175 University Dr, Amherst, MA 01002"
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": false
         }
       ],
       "total": 8.95,
-      "createdAt": "2026-11-14T22:53:18.830Z"
+      "createdAt": "2026-11-14T22:53:18.830Z",
+      "payment": null
     },
     {
       "id": "a00afdb1-4ec1-47c4-8a93-aecc17fff125",
@@ -36,11 +38,112 @@
           "detail": "Big Y Supermarkets · Produce",
           "price": 1.79,
           "quantity": 4,
-          "pickup": "175 University Dr, Amherst, MA 01002"
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": false
         }
       ],
       "total": 7.16,
-      "createdAt": "2026-11-14T22:56:51.844Z"
+      "createdAt": "2026-11-14T22:56:51.844Z",
+      "payment": null
+    },
+    {
+      "id": "88ef918f-31be-429c-a803-e4e71f91fcc7",
+      "address": "35",
+      "pickups": [
+        "175 University Dr, Amherst, MA 01002"
+      ],
+      "customer": "guest",
+      "driver": "Aarna",
+      "items": [
+        {
+          "id": "Big Y Supermarkets|175 University Dr, Amherst, MA 01002|bigy-gala-apples",
+          "name": "Gala Apples",
+          "detail": "Big Y Supermarkets · Produce",
+          "price": 1.79,
+          "quantity": 1,
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": true
+        },
+        {
+          "id": "Big Y Supermarkets|175 University Dr, Amherst, MA 01002|bigy-rotisserie-chicken",
+          "name": "Rotisserie Chicken",
+          "detail": "Big Y Supermarkets · Deli",
+          "price": 8.99,
+          "quantity": 2,
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": false
+        },
+        {
+          "id": "Big Y Supermarkets|175 University Dr, Amherst, MA 01002|big-y-supermarkets-bananas",
+          "name": "Bananas",
+          "detail": "Big Y Supermarkets · Produce",
+          "price": 0.69,
+          "quantity": 1,
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": true
+        }
+      ],
+      "total": 26.57,
+      "payment": {
+        "checkoutId": "35b62887-0c43-4263-8ea9-35c9df210221",
+        "tip": 0,
+        "deliveryFee": 4.99,
+        "salesTax": 1.12,
+        "snapSubtotal": 2.48,
+        "otherSubtotal": 17.98,
+        "card": {
+          "last4": "4242",
+          "amount": 26.57,
+          "paymentIntentId": "pi_3UbsHKP41aent19i1DgpRfYm"
+        },
+        "ebt": null
+      },
+      "createdAt": "2026-11-15T01:30:48.612Z"
+    },
+    {
+      "id": "e3522296-1a3e-4b42-b555-9d6670a5274a",
+      "address": "576897",
+      "pickups": [
+        "175 University Dr, Amherst, MA 01002"
+      ],
+      "customer": "guest",
+      "driver": null,
+      "items": [
+        {
+          "id": "Big Y Supermarkets|175 University Dr, Amherst, MA 01002|big-y-supermarkets-bananas",
+          "name": "Bananas",
+          "detail": "Big Y Supermarkets · Produce",
+          "price": 0.69,
+          "quantity": 3,
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": true
+        },
+        {
+          "id": "Big Y Supermarkets|175 University Dr, Amherst, MA 01002|big-y-supermarkets-rotisserie-chicken",
+          "name": "Rotisserie Chicken",
+          "detail": "Big Y Supermarkets · Deli",
+          "price": 8.99,
+          "quantity": 3,
+          "pickup": "175 University Dr, Amherst, MA 01002",
+          "snapEligible": false
+        }
+      ],
+      "total": 35.72,
+      "payment": {
+        "checkoutId": "7639fb8b-e72e-4fbb-b7e1-91663ce8e65c",
+        "tip": 0,
+        "deliveryFee": 4.99,
+        "salesTax": 1.69,
+        "snapSubtotal": 2.07,
+        "otherSubtotal": 26.97,
+        "card": {
+          "last4": "4242",
+          "amount": 35.72,
+          "paymentIntentId": "pi_3UbuYTP41aent19i1vbmKRsI"
+        },
+        "ebt": null
+      },
+      "createdAt": "2026-11-15T03:56:47.124Z"
     }
   ]
 }

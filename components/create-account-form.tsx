@@ -63,6 +63,12 @@ export function CreateAccountForm({
         <>
           <Field label="Name" name="name" autoComplete="organization" />
           <Field label="Address" name="address" autoComplete="street-address" />
+          <Field
+            label="Password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+          />
           <label className="flex items-center gap-2 text-sm font-medium">
             <input
               name="snapEligible"

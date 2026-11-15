@@ -1,4 +1,5 @@
 import { connection } from "next/server"
+import { isStoredMenuPhoto } from "@/lib/menu-photos"
 import { loadMenu, saveMenuPhoto } from "@/lib/menu"
 
 export async function GET() {
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
       ? (body as { photoUrl: string }).photoUrl.trim()
       : ""
 
-  if (!isHttpsUrl(photoUrl)) {
+  if (!isStoredMenuPhoto(photoUrl) && !isHttpsUrl(photoUrl)) {
     return Response.json({ error: "Upload a menu photo before saving." }, { status: 400 })
   }
 

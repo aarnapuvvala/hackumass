@@ -26,6 +26,7 @@ export type StoreAccount = {
   role: "store"
   name: string
   address: string
+  password?: string
   snapEligible: boolean
   createdAt?: string
 }
